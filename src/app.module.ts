@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { CompaniesModule } from './modules/companies/companies.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CompaniesModule } from './modules/companies/companies.module';
     }),
     DatabaseModule,
     CompaniesModule,
+    UsersModule,
     // Aquí irán tus módulos de dominio
   ],
   controllers: [AppController],
