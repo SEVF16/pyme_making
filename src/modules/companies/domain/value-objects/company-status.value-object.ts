@@ -7,7 +7,6 @@ export class CompanyStatusValueObject {
     if (!this.VALID_STATUSES.includes(status as any)) {
       throw new Error(`Estado de empresa inválido: ${status}`);
     }
-
     return new CompanyStatusValueObject(status as any);
   }
 

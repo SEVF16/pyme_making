@@ -1,55 +1,27 @@
-// src/modules/companies/infrastructure/repositories/company.repository.ts
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Company } from '../../domain/entities/company.entity';
 import { CompanyRepositoryAbstract } from '../../domain/interfaces/company-repository.interface';
+import { BaseRepository } from '../../../../shared/infrastructure/repository/base.repository'; // *** USANDO SHARED ***
+import { PaginationService } from '../../../../shared/application/services/pagination.service'; // *** USANDO SHARED ***
 
 @Injectable()
-export class CompanyRepository implements CompanyRepositoryAbstract {
+export class CompanyRepository extends BaseRepository<Company> implements CompanyRepositoryAbstract {
   constructor(
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
-  ) {}
-
-  async findById(id: string): Promise<Company | null> {
-    return await this.companyRepository.findOne({ where: { id } });
+    paginationService: PaginationService,
+  ) {
+    super(companyRepository, paginationService);
   }
 
   async findByRut(rut: string): Promise<Company | null> {
     return await this.companyRepository.findOne({ where: { rut } });
   }
 
-  async findAll(): Promise<Company[]> {
-    return await this.companyRepository.find();
-  }
-
   async findByStatus(status: string): Promise<Company[]> {
     return await this.companyRepository.find({ where: { status: status as any } });
-  }
-
-  async create(companyData: Partial<Company>): Promise<Company> {
-    const company = this.companyRepository.create(companyData);
-    return await this.companyRepository.save(company);
-  }
-
-  async update(id: string, companyData: Partial<Company>): Promise<Company> {
-    await this.companyRepository.update(id, companyData);
-    const updatedCompany = await this.findById(id);
-    
-    if (!updatedCompany) {
-      throw new Error(`Empresa con ID ${id} no encontrada`);
-    }
-    
-    return updatedCompany;
-  }
-
-  async delete(id: string): Promise<void> {
-    const result = await this.companyRepository.delete(id);
-    
-    if (result.affected === 0) {
-      throw new Error(`Empresa con ID ${id} no encontrada`);
-    }
   }
 
   async findWithConfigurations(id: string): Promise<Company | null> {
@@ -57,5 +29,26 @@ export class CompanyRepository implements CompanyRepositoryAbstract {
       where: { id },
       relations: ['configurations']
     });
+  }
+
+  protected getAlias(): string {
+    return 'company';
+  }
+
+  protected applyFilters(queryBuilder: SelectQueryBuilder<Company>, filters: any): void {
+    if (filters.status) {
+      queryBuilder.andWhere('company.status = :status', { status: filters.status });
+    }
+
+    if (filters.companySize) {
+      queryBuilder.andWhere('company.companySize = :companySize', { companySize: filters.companySize });
+    }
+
+    if (filters.search) {
+      queryBuilder.andWhere(
+        '(company.businessName ILIKE :search OR company.fantasyName ILIKE :search OR company.rut ILIKE :search)',
+        { search: `%${filters.search}%` }
+      );
+    }
   }
 }

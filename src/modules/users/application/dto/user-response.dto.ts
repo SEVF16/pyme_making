@@ -1,9 +1,7 @@
+import { BaseResponseDto } from '../../../../shared/application/dto/base-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UserResponseDto {
-  @ApiProperty()
-  id: string;
-
+export class UserResponseDto extends BaseResponseDto {
   @ApiProperty()
   companyId: string;
 
@@ -19,10 +17,10 @@ export class UserResponseDto {
   @ApiProperty()
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   phone?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   avatar?: string;
 
   @ApiProperty()
@@ -37,12 +35,6 @@ export class UserResponseDto {
   @ApiProperty()
   emailVerified: boolean;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   lastLoginAt?: Date;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
 }

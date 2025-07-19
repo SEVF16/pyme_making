@@ -11,7 +11,6 @@ import {CompanyRepositoryAbstract} from './domain/interfaces/company-repository.
 // Infrastructure
 import { CompanyRepository } from './infrastructure/repositories/company.repository';
 
-import { TenantContextService } from './infrastructure/context/tenant-context.service';
 
 
 
@@ -33,7 +32,7 @@ import { CompanyExceptionFilter } from './infrastructure/filters/company-excepti
   providers: [
     // Services
     CompanyService,
-    TenantContextService,
+
     
     // Use Cases
     CreateCompanyUseCase,
@@ -54,7 +53,7 @@ import { CompanyExceptionFilter } from './infrastructure/filters/company-excepti
   ],
   exports: [
     CompanyService,
-    TenantContextService,
+
 CompanyRepositoryAbstract
   ],
 })

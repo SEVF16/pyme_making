@@ -1,12 +1,7 @@
+import { BaseResponseDto } from '../../../../shared/application/dto/base-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CustomerResponseDto {
-  @ApiProperty({ 
-    description: 'ID único del cliente',
-    example: '550e8400-e29b-41d4-a716-446655440000'
-  })
-  id: string;
-
+export class CustomerResponseDto extends BaseResponseDto {
   @ApiProperty({ 
     description: 'RUT del cliente',
     example: '12.345.678-9'
@@ -101,16 +96,4 @@ export class CustomerResponseDto {
     required: false
   })
   additionalInfo?: Record<string, any>;
-
-  @ApiProperty({ 
-    description: 'Fecha de creación',
-    example: '2023-01-15T10:30:00Z'
-  })
-  createdAt: Date;
-
-  @ApiProperty({ 
-    description: 'Fecha de última actualización',
-    example: '2023-01-15T10:30:00Z'
-  })
-  updatedAt: Date;
 }

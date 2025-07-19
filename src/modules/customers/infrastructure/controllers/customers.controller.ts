@@ -11,6 +11,7 @@ import {
   HttpStatus,
   HttpCode,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -26,13 +27,18 @@ import {
 import { CreateCustomerDto } from '../../application/dto/create-customer.dto';
 import { UpdateCustomerDto } from '../../application/dto/update-customer.dto';
 import { CustomerResponseDto } from '../../application/dto/customer-response.dto';
+import { CustomerQueryDto } from '../../application/dto/customer-query.dto';
 import { CustomerService } from '../../application/services/customers.service';
-import { TenantGuard } from '../guards/tenant.guard';
-import { CurrentTenant } from '../decorators/tenant.decorator';
+// *** USANDO SHARED ***
+import { TenantGuard } from '../../../../shared/infrastructure/guards/tenant.guard';
+import { CurrentTenant } from '../../../../shared/infrastructure/decorators/current-tenant.decorator';
+import { ResponseInterceptor } from '../../../../shared/infrastructure/interceptors/response.interceptor';
+import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto';
 
 @ApiTags('Customers')
 @Controller('customers')
 @UseGuards(TenantGuard)
+@UseInterceptors(ResponseInterceptor)
 @ApiBearerAuth()
 @ApiHeader({
   name: 'X-Tenant-ID',
@@ -72,40 +78,21 @@ export class CustomerController {
 
   @Get()
   @ApiOperation({ 
-    summary: 'Obtener clientes de la empresa',
-    description: 'Obtiene la lista de clientes de la empresa con filtros opcionales'
-  })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    description: 'Filtrar por estado',
-    enum: ['active', 'inactive', 'blocked'],
-  })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Buscar por nombre o email',
-    type: String,
+    summary: 'Obtener clientes con paginación',
+    description: 'Obtiene la lista de clientes con filtros y paginación'
   })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Lista de clientes obtenida exitosamente',
-    type: [CustomerResponseDto],
+    type: PaginatedResponseDto,
   })
-  async getCustomersByCompany(
+  async getCustomers(
+    @Query() queryDto: CustomerQueryDto,
     @CurrentTenant() tenantId: string,
-    @Query('status') status?: string,
-    @Query('search') search?: string,
-  ): Promise<CustomerResponseDto[]> {
-    if (search) {
-      return await this.customerService.searchCustomers(search, tenantId);
-    }
-    
-    if (status) {
-      return await this.customerService.getCustomersByStatus(status, tenantId);
-    }
-    
-    return await this.customerService.getCustomersByCompany(tenantId);
+  ): Promise<PaginatedResponseDto<CustomerResponseDto>> {
+    // Asegurar que siempre filtre por la empresa del tenant
+    queryDto.companyId = tenantId;
+    return await this.customerService.getCustomers(queryDto);
   }
 
   @Get('active')
@@ -120,6 +107,29 @@ export class CustomerController {
   })
   async getActiveCustomers(@CurrentTenant() tenantId: string): Promise<CustomerResponseDto[]> {
     return await this.customerService.getCustomersByStatus('active', tenantId);
+  }
+
+  @Get('search')
+  @ApiOperation({ 
+    summary: 'Buscar clientes',
+    description: 'Busca clientes por nombre, apellido o email'
+  })
+  @ApiQuery({
+    name: 'q',
+    description: 'Término de búsqueda',
+    required: true,
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Resultados de búsqueda',
+    type: [CustomerResponseDto],
+  })
+  async searchCustomers(
+    @Query('q') query: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<CustomerResponseDto[]> {
+    return await this.customerService.searchCustomers(query, tenantId);
   }
 
   @Get('rut/:rut')

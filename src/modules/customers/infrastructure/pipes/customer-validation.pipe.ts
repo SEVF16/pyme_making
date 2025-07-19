@@ -1,8 +1,8 @@
 import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
 import { CreateCustomerDto } from '../../application/dto/create-customer.dto';
 import { UpdateCustomerDto } from '../../application/dto/update-customer.dto';
-import { RutValueObject } from '../../domain/value-objects/rut.value-object';
-import { EmailValueObject } from '../../domain/value-objects/email.value-object';
+import { RutValueObject } from '../../../../shared/domain/value-objects/rut.value-object';
+import { EmailValueObject } from '../../../../shared/domain/value-objects/email.value-object';
 
 @Injectable()
 export class CustomerValidationPipe implements PipeTransform {

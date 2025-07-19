@@ -1,4 +1,6 @@
-// src/modules/companies/domain/exceptions/company.exceptions.ts
+import { ExceptionFilter, Catch, ArgumentsHost, HttpStatus } from '@nestjs/common';
+import { Response } from 'express';
+
 export class CompanyNotFoundException extends Error {
   constructor(identifier: string) {
     super(`Empresa no encontrada: ${identifier}`);
@@ -27,24 +29,11 @@ export class InvalidCompanyStatusException extends Error {
   }
 }
 
-export class SiiConfigurationException extends Error {
-  constructor(message: string) {
-    super(`Error en configuración SII: ${message}`);
-    this.name = 'SiiConfigurationException';
-  }
-}
-
-// src/modules/companies/infrastructure/filters/company-exception.filter.ts
-import { ExceptionFilter, Catch, ArgumentsHost, HttpStatus } from '@nestjs/common';
-import { Response } from 'express';
-
-
 @Catch(
   CompanyNotFoundException,
   CompanyAlreadyExistsException,
   InvalidRutException,
   InvalidCompanyStatusException,
-  SiiConfigurationException,
 )
 export class CompanyExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
@@ -68,10 +57,6 @@ export class CompanyExceptionFilter implements ExceptionFilter {
         status = HttpStatus.BAD_REQUEST;
         message = exception.message;
         break;
-      case SiiConfigurationException:
-        status = HttpStatus.UNPROCESSABLE_ENTITY;
-        message = exception.message;
-        break;
       default:
         status = HttpStatus.INTERNAL_SERVER_ERROR;
         message = 'Error interno del servidor';
@@ -81,6 +66,7 @@ export class CompanyExceptionFilter implements ExceptionFilter {
       statusCode: status,
       message,
       timestamp: new Date().toISOString(),
+      path: ctx.getRequest().url,
     });
   }
 }

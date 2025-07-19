@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCompanyDto } from '../dto/create-company.dto';
 import { UpdateCompanyDto } from '../dto/update-company.dto';
-import { CreateSiiConfigurationDto } from '../dto/create-sii-configuration.dto';
 import { CompanyResponseDto } from '../dto/company-response.dto';
+import { CompanyQueryDto } from '../dto/company-query.dto';
 import { CreateCompanyUseCase } from '../use-cases/create-company.use-case';
 import { GetCompanyUseCase } from '../use-cases/get-company.use-case';
 import { UpdateCompanyUseCase } from '../use-cases/update-company.use-case';
-import { ConfigureSiiUseCase } from '../use-cases/configure-sii.use-case';
 import { CompanyRepositoryAbstract } from '../../domain/interfaces/company-repository.interface';
+import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto'; // *** USANDO SHARED ***
+import { FindOptions } from '../../../../shared/domain/interfaces/repository.interface'; // *** USANDO SHARED ***
 
 @Injectable()
 export class CompanyService {
@@ -15,7 +16,6 @@ export class CompanyService {
     private readonly createCompanyUseCase: CreateCompanyUseCase,
     private readonly getCompanyUseCase: GetCompanyUseCase,
     private readonly updateCompanyUseCase: UpdateCompanyUseCase,
-    private readonly configureSiiUseCase: ConfigureSiiUseCase,
     private readonly companyRepository: CompanyRepositoryAbstract,
   ) {}
 
@@ -34,9 +34,28 @@ export class CompanyService {
     return company ? this.toResponseDto(company) : null;
   }
 
-  async getAllCompanies(): Promise<CompanyResponseDto[]> {
-    const companies = await this.companyRepository.findAll();
-    return companies.map(company => this.toResponseDto(company));
+  async getAllCompanies(queryDto: CompanyQueryDto): Promise<PaginatedResponseDto<CompanyResponseDto>> {
+    const findOptions: FindOptions = {
+      pagination: {
+        page: queryDto.page,
+        limit: queryDto.limit,
+      },
+      sort: {
+        field: queryDto.sortField || 'createdAt',
+        direction: queryDto.sortDirection || 'DESC',
+      },
+      filters: {
+        status: queryDto.status,
+        companySize: queryDto.companySize,
+      },
+      search: queryDto.search,
+    };
+
+    const result = await this.companyRepository.findAll(findOptions);
+    
+    const companies = result.data.map(company => this.toResponseDto(company));
+    
+    return new PaginatedResponseDto(companies, result.total, result.page, result.limit);
   }
 
   async updateCompany(id: string, updateCompanyDto: UpdateCompanyDto): Promise<CompanyResponseDto> {
@@ -46,10 +65,6 @@ export class CompanyService {
 
   async deleteCompany(id: string): Promise<void> {
     await this.companyRepository.delete(id);
-  }
-
-  async configureSii(configDto: CreateSiiConfigurationDto): Promise<any> {
-    return await this.configureSiiUseCase.execute(configDto);
   }
 
   async getCompanyWithConfigurations(id: string): Promise<any> {

@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDa
 import { Company } from '../../../companies/domain/entities/company.entity';
 
 @Entity('users')
-@Index(['email', 'companyId'], { unique: true }) // Email único por empresa
+@Index(['email', 'companyId'], { unique: true })
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -23,7 +23,7 @@ export class User {
   @Column()
   email: string;
 
-  @Column() // No incluir en queries por defecto
+  @Column()
   password: string;
 
   @Column({ nullable: true })

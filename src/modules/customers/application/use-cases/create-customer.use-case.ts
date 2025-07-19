@@ -3,7 +3,7 @@ import { CompanyRepositoryAbstract } from '../../../companies/domain/interfaces/
 import { CreateCustomerDto } from '../dto/create-customer.dto';
 import { Customer } from '../../domain/entities/customer.entity';
 import { CustomerRepositoryAbstract } from '../../domain/interfaces/customer-repository.interface';
-import { RutValueObject } from '../../domain/value-objects/rut.value-object';
+import { RutValueObject } from '../../../../shared/domain/value-objects/rut.value-object'; // *** USANDO SHARED ***
 
 @Injectable()
 export class CreateCustomerUseCase {
@@ -19,7 +19,7 @@ export class CreateCustomerUseCase {
       throw new NotFoundException(`Empresa con ID ${createCustomerDto.companyId} no encontrada`);
     }
 
-    // Validar RUT
+    // Validar RUT usando shared value object
     const rutValue = RutValueObject.create(createCustomerDto.rut);
     
     // Verificar si el cliente ya existe en la empresa

@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware, BadRequestException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { RutValueObject } from '../../domain/value-objects/rut.value-object';
+import { RutValueObject } from '../../../../shared/domain/value-objects/rut.value-object'; // *** USANDO SHARED ***
 
 @Injectable()
 export class CustomerValidationMiddleware implements NestMiddleware {

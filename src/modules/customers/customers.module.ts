@@ -28,7 +28,6 @@ import { CustomerController } from './infrastructure/controllers/customers.contr
 import { CustomerExceptionFilter } from './infrastructure/filters/customer-exception.filter';
 
 // Guards
-import { TenantGuard } from './infrastructure/guards/tenant.guard';
 import { CustomerOwnershipGuard } from './infrastructure/guards/customer-ownership.guard';
 
 // Interceptors
@@ -70,7 +69,6 @@ import { CustomerValidationMiddleware } from './infrastructure/middleware/custom
     },
 
     // Guards
-    TenantGuard,
     CustomerOwnershipGuard,
 
     // Global Providers
@@ -91,7 +89,6 @@ import { CustomerValidationMiddleware } from './infrastructure/middleware/custom
     CustomerService,
     CustomerDomainService,
     CustomerRepositoryAbstract,
-    TenantGuard,
     CustomerOwnershipGuard,
   ],
 })

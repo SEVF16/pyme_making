@@ -1,5 +1,9 @@
-export class EmailValueObject {
-  private constructor(private readonly value: string) {}
+import { BaseValueObject } from "./base.value-object";
+
+export class EmailValueObject extends BaseValueObject<string> {
+  private constructor(value: string) {
+    super(value);
+  }
 
   static create(email: string): EmailValueObject {
     const cleanEmail = email.trim().toLowerCase();
@@ -13,11 +17,7 @@ export class EmailValueObject {
 
   private static isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email) && email.length <= 254;
-  }
-
-  getValue(): string {
-    return this.value;
+    return emailRegex.test(email) && email.length <= 255;
   }
 
   getDomain(): string {

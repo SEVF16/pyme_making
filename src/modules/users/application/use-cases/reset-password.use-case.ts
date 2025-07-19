@@ -1,13 +1,17 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { UserRepositoryAbstract } from '../../domain/interfaces/user-repository.interface';
 import { PasswordValueObject } from '../../domain/value-objects/password.value-object';
+import { TokenService } from '../../../../shared/application/services/token.service'; // *** USANDO SHARED ***
 import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class RequestPasswordResetUseCase {
   private readonly logger = new Logger(RequestPasswordResetUseCase.name);
 
-  constructor(private readonly userRepository: UserRepositoryAbstract) {}
+  constructor(
+    private readonly userRepository: UserRepositoryAbstract,
+    private readonly tokenService: TokenService, // *** USANDO SHARED ***
+  ) {}
 
   async execute(email: string, companyId: string): Promise<void> {
     this.logger.log(`Requesting password reset for email: ${email}`);
@@ -20,21 +24,16 @@ export class RequestPasswordResetUseCase {
       return;
     }
 
-    const resetToken = this.generateResetToken();
-    const resetExpires = new Date(Date.now() + 3600000); // 1 hora
+    // Usar shared token service
+    const tokenData = this.tokenService.generatePasswordResetToken(1); // 1 hora
 
     await this.userRepository.update(user.id, {
-      passwordResetToken: resetToken,
-      passwordResetExpires: resetExpires,
+      passwordResetToken: tokenData.hashedToken,
+      passwordResetExpires: tokenData.expiresAt,
     });
 
-    // TODO: Enviar email con el token de reseteo
+    // TODO: Enviar email con tokenData.token (no hashedToken)
     this.logger.log(`Password reset token generated for user: ${user.id}`);
-  }
-
-  private generateResetToken(): string {
-    return Math.random().toString(36).substring(2, 15) + 
-           Math.random().toString(36).substring(2, 15);
   }
 }
 
@@ -42,18 +41,26 @@ export class RequestPasswordResetUseCase {
 export class ResetPasswordUseCase {
   private readonly logger = new Logger(ResetPasswordUseCase.name);
 
-  constructor(private readonly userRepository: UserRepositoryAbstract) {}
+  constructor(
+    private readonly userRepository: UserRepositoryAbstract,
+    private readonly tokenService: TokenService, // *** USANDO SHARED ***
+  ) {}
 
   async execute(token: string, newPassword: string): Promise<void> {
-    this.logger.log(`Resetting password with token: ${token}`);
+    this.logger.log(`Resetting password with token`);
 
-    const user = await this.userRepository.findByPasswordResetToken(token);
+    // Buscar usuario por token hasheado
+    const users = await this.userRepository.findAll();
+    const user = users.data.find(u => 
+      u.passwordResetToken && 
+      this.tokenService.verifyToken(token, u.passwordResetToken)
+    );
     
     if (!user) {
       throw new NotFoundException('Token de reseteo inválido o expirado');
     }
 
-    if (!user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+    if (!user.passwordResetExpires || this.tokenService.isTokenExpired(user.passwordResetExpires)) {
       throw new BadRequestException('Token de reseteo expirado');
     }
 

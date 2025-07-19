@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { CreateCustomerDto } from '../dto/create-customer.dto';
 import { UpdateCustomerDto } from '../dto/update-customer.dto';
 import { CustomerResponseDto } from '../dto/customer-response.dto';
+import { CustomerQueryDto } from '../dto/customer-query.dto';
 import { CreateCustomerUseCase } from '../use-cases/create-customer.use-case';
 import { GetCustomerUseCase } from '../use-cases/get-customer.use-case';
 import { UpdateCustomerUseCase } from '../use-cases/update-customer.use-case';
 import { GetCustomersByCompanyUseCase } from '../use-cases/get-customers-by-company.use-case';
 import { CustomerRepositoryAbstract } from '../../domain/interfaces/customer-repository.interface';
-
+import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto'; // *** USANDO SHARED ***
+import { FindOptions } from '../../../../shared/domain/interfaces/repository.interface'; // *** USANDO SHARED ***
 
 @Injectable()
 export class CustomerService {
@@ -39,6 +41,31 @@ export class CustomerService {
     return customers.map(customer => this.toResponseDto(customer));
   }
 
+  async getCustomers(queryDto: CustomerQueryDto): Promise<PaginatedResponseDto<CustomerResponseDto>> {
+    const findOptions: FindOptions = {
+      pagination: {
+        page: queryDto.page,
+        limit: queryDto.limit,
+      },
+      sort: {
+        field: queryDto.sortField || 'createdAt',
+        direction: queryDto.sortDirection || 'DESC',
+      },
+      filters: {
+        companyId: queryDto.companyId,
+        status: queryDto.status,
+        customerType: queryDto.customerType,
+      },
+      search: queryDto.search,
+    };
+
+    const result = await this.customerRepository.findAll(findOptions);
+    
+    const customers = result.data.map(customer => this.toResponseDto(customer));
+    
+    return new PaginatedResponseDto(customers, result.total, result.page, result.limit);
+  }
+
   async getCustomersByStatus(status: string, companyId: string): Promise<CustomerResponseDto[]> {
     const customers = await this.customerRepository.findByStatusAndCompany(status, companyId);
     return customers.map(customer => this.toResponseDto(customer));
@@ -50,7 +77,11 @@ export class CustomerService {
   }
 
   async deleteCustomer(id: string): Promise<void> {
-    await this.customerRepository.delete(id);
+    if (this.customerRepository.softDelete) {
+      await this.customerRepository.softDelete(id);
+    } else {
+      await this.customerRepository.delete(id);
+    }
   }
 
   async searchCustomers(query: string, companyId: string): Promise<CustomerResponseDto[]> {

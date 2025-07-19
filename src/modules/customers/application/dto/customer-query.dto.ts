@@ -2,7 +2,7 @@ import { IsOptional, IsEnum } from 'class-validator';
 import { PaginationDto } from '../../../../shared/application/dto/pagination.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class UserQueryDto extends PaginationDto {
+export class CustomerQueryDto extends PaginationDto {
   @ApiPropertyOptional({ 
     description: 'Filtrar por empresa',
     format: 'uuid'
@@ -11,18 +11,18 @@ export class UserQueryDto extends PaginationDto {
   companyId?: string;
 
   @ApiPropertyOptional({ 
-    description: 'Filtrar por rol',
-    enum: ['admin', 'manager', 'employee', 'viewer'] 
+    description: 'Filtrar por estado',
+    enum: ['active', 'inactive', 'blocked'] 
   })
   @IsOptional()
-  @IsEnum(['admin', 'manager', 'employee', 'viewer'])
-  role?: string;
+  @IsEnum(['active', 'inactive', 'blocked'])
+  status?: string;
 
   @ApiPropertyOptional({ 
-    description: 'Filtrar por estado',
-    enum: ['active', 'inactive', 'suspended', 'pending'] 
+    description: 'Filtrar por tipo',
+    enum: ['individual', 'business'] 
   })
   @IsOptional()
-  @IsEnum(['active', 'inactive', 'suspended', 'pending'])
-  status?: string;
+  @IsEnum(['individual', 'business'])
+  customerType?: string;
 }

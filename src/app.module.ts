@@ -6,6 +6,7 @@ import { DatabaseModule } from './database/database.module';
 import { CompaniesModule } from './modules/companies/companies.module';
 import { UsersModule } from './modules/users/users.module';
 import { CustomersModule } from './modules/customers/customers.module';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CustomersModule } from './modules/customers/customers.module';
       envFilePath: '.env',
     }),
     DatabaseModule,
+    SharedModule,
     CompaniesModule,
     UsersModule,
     CustomersModule,

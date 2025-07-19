@@ -1,5 +1,9 @@
-export class RutValueObject {
-  private constructor(private readonly value: string) {}
+import { BaseValueObject } from "./base.value-object";
+
+export class RutValueObject extends BaseValueObject<string> {
+  private constructor(value: string) {
+    super(value);
+  }
 
   static create(rut: string): RutValueObject {
     const cleanRut = rut.replace(/[.-]/g, '');
@@ -12,23 +16,16 @@ export class RutValueObject {
   }
 
   private static isValidRut(rut: string): boolean {
-    // Verificar longitud
-    if (rut.length < 8 || rut.length > 9) {
-      return false;
-    }
+    if (rut.length < 8 || rut.length > 9) return false;
 
     const rutNumber = rut.slice(0, -1);
     const dv = rut.slice(-1).toLowerCase();
 
-    // Verificar que el número sea válido
-    if (!/^\d+$/.test(rutNumber)) {
-      return false;
-    }
+    if (!/^\d+$/.test(rutNumber)) return false;
 
     let sum = 0;
     let multiplier = 2;
 
-    // Calcular desde el final hacia el inicio
     for (let i = rutNumber.length - 1; i >= 0; i--) {
       sum += parseInt(rutNumber[i]) * multiplier;
       multiplier = multiplier === 7 ? 2 : multiplier + 1;
@@ -46,12 +43,7 @@ export class RutValueObject {
   private static formatRut(rut: string): string {
     const rutNumber = rut.slice(0, -1);
     const dv = rut.slice(-1);
-    
     return `${rutNumber.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${dv}`;
-  }
-
-  getValue(): string {
-    return this.value;
   }
 
   getCleanValue(): string {

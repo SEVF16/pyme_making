@@ -1,4 +1,3 @@
-// src/modules/customers/domain/entities/customer.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Company } from '../../../companies/domain/entities/company.entity';
 

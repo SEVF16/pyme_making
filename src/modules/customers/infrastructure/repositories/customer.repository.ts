@@ -1,18 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Customer } from '../../domain/entities/customer.entity';
 import { CustomerRepositoryAbstract } from '../../domain/interfaces/customer-repository.interface';
+import { BaseRepository } from '../../../../shared/infrastructure/repository/base.repository'; // *** USANDO SHARED ***
+import { PaginationService } from '../../../../shared/application/services/pagination.service'; // *** USANDO SHARED ***
 
 @Injectable()
-export class CustomerRepository implements CustomerRepositoryAbstract {
+export class CustomerRepository extends BaseRepository<Customer> implements CustomerRepositoryAbstract {
   constructor(
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
-  ) {}
-
-  async findById(id: string): Promise<Customer | null> {
-    return await this.customerRepository.findOne({ where: { id } });
+    paginationService: PaginationService,
+  ) {
+    super(customerRepository, paginationService);
   }
 
   async findByRut(rut: string): Promise<Customer | null> {
@@ -63,36 +64,6 @@ export class CustomerRepository implements CustomerRepositoryAbstract {
       .getMany();
   }
 
-  async findAll(): Promise<Customer[]> {
-    return await this.customerRepository.find({
-      order: { createdAt: 'DESC' }
-    });
-  }
-
-  async create(customerData: Partial<Customer>): Promise<Customer> {
-    const customer = this.customerRepository.create(customerData);
-    return await this.customerRepository.save(customer);
-  }
-
-  async update(id: string, customerData: Partial<Customer>): Promise<Customer> {
-    await this.customerRepository.update(id, customerData);
-    const updatedCustomer = await this.findById(id);
-    
-    if (!updatedCustomer) {
-      throw new Error(`Cliente con ID ${id} no encontrado`);
-    }
-    
-    return updatedCustomer;
-  }
-
-  async delete(id: string): Promise<void> {
-    const result = await this.customerRepository.delete(id);
-    
-    if (result.affected === 0) {
-      throw new Error(`Cliente con ID ${id} no encontrado`);
-    }
-  }
-
   async countByCompany(companyId: string): Promise<number> {
     return await this.customerRepository.count({ where: { companyId } });
   }
@@ -102,5 +73,30 @@ export class CustomerRepository implements CustomerRepositoryAbstract {
       where: { companyId, status: 'active' },
       order: { createdAt: 'DESC' }
     });
+  }
+
+  protected getAlias(): string {
+    return 'customer';
+  }
+
+  protected applyFilters(queryBuilder: SelectQueryBuilder<Customer>, filters: any): void {
+    if (filters.companyId) {
+      queryBuilder.andWhere('customer.companyId = :companyId', { companyId: filters.companyId });
+    }
+
+    if (filters.status) {
+      queryBuilder.andWhere('customer.status = :status', { status: filters.status });
+    }
+
+    if (filters.customerType) {
+      queryBuilder.andWhere('customer.customerType = :customerType', { customerType: filters.customerType });
+    }
+
+    if (filters.search) {
+      queryBuilder.andWhere(
+        '(customer.firstName ILIKE :search OR customer.lastName ILIKE :search OR customer.email ILIKE :search OR customer.rut ILIKE :search)',
+        { search: `%${filters.search}%` }
+      );
+    }
   }
 }
