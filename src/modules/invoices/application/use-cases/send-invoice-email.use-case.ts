@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InvoiceRepositoryAbstract } from '../../domain/interfaces/invoice-repository.interface';
+
 import { CustomerRepositoryAbstract } from '../../../customers/domain/interfaces/customer-repository.interface';
-import { EmailService } from '../../../../shared/application/services/email.service';
+
 import { PdfGeneratorService } from '../../domain/services/pdf-generator.service';
+import { InvoiceRepositoryAbstract } from '../../domain/interfaces/invoice-repository.interface';
+import { EmailService } from 'src/shared/application/services/email.service';
 
 @Injectable()
 export class SendInvoiceEmailUseCase {

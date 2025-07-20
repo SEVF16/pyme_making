@@ -269,16 +269,16 @@ export class InvoiceRepository implements InvoiceRepositoryAbstract {
 
         savedInvoice.items = await transactionalEntityManager.save(InvoiceItem, invoiceItems);
         
-        const subtotal = savedInvoice.items.reduce((sum, item) => sum + item.subtotal, 0);
-        const discountTotal = savedInvoice.items.reduce((sum, item) => sum + item.discountTotal, 0);
-        const taxTotal = savedInvoice.items.reduce((sum, item) => sum + item.taxAmount, 0);
+        const subtotal = savedInvoice.items.reduce((sum, item) => sum + Number(item.subtotal), 0);
+        const discountTotal = savedInvoice.items.reduce((sum, item) => sum + Number(item.discountTotal), 0);
+        const taxTotal = savedInvoice.items.reduce((sum, item) => sum + Number(item.taxAmount), 0);
         const total = subtotal - discountTotal + taxTotal;
 
         await transactionalEntityManager.update(Invoice, savedInvoice.id, {
-          subtotal,
-          discountTotal,
-          taxTotal,
-          total,
+          subtotal: Number(subtotal),
+          discountTotal: Number(discountTotal),
+          taxTotal: Number(taxTotal),
+          total: Number(total),
         });
 
         savedInvoice.subtotal = subtotal;
@@ -349,21 +349,21 @@ async removeItem(invoiceId: string, itemId: string): Promise<Invoice> {
     });
   }
 
-  private async recalculateInvoiceTotals(invoiceId: string, entityManager: any): Promise<void> {
-    const items = await entityManager.find(InvoiceItem, { where: { invoiceId } });
-    
-    const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
-    const discountTotal = items.reduce((sum, item) => sum + item.discountTotal, 0);
-    const taxTotal = items.reduce((sum, item) => sum + item.taxAmount, 0);
-    const total = subtotal - discountTotal + taxTotal;
+private async recalculateInvoiceTotals(invoiceId: string, entityManager: any): Promise<void> {
+  const items = await entityManager.find(InvoiceItem, { where: { invoiceId } });
+  
+  const subtotal = items.reduce((sum, item) => sum + Number(item.subtotal), 0);
+  const discountTotal = items.reduce((sum, item) => sum + Number(item.discountTotal), 0);
+  const taxTotal = items.reduce((sum, item) => sum + Number(item.taxAmount), 0);
+  const total = subtotal - discountTotal + taxTotal;
 
-    await entityManager.update(Invoice, invoiceId, {
-      subtotal,
-      discountTotal,
-      taxTotal,
-      total,
-    });
-  }
+  await entityManager.update(Invoice, invoiceId, {
+    subtotal: Number(subtotal),
+    discountTotal: Number(discountTotal),
+    taxTotal: Number(taxTotal),
+    total: Number(total),
+  });
+}
 
   private applyFilters(queryBuilder: SelectQueryBuilder<Invoice>, filters: any): void {
     if (filters.companyId) {

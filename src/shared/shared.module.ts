@@ -4,6 +4,7 @@ import { PaginationService } from './application/services/pagination.service';
 import { TenantGuard } from './infrastructure/guards/tenant.guard';
 import { ResponseInterceptor } from './infrastructure/interceptors/response.interceptor';
 import { GlobalExceptionFilter } from './infrastructure/filters/global-exception.filter';
+import { EmailService } from './application/services/email.service';
 
 
 @Global()
@@ -14,6 +15,7 @@ import { GlobalExceptionFilter } from './infrastructure/filters/global-exception
     TenantGuard,
     ResponseInterceptor,
     GlobalExceptionFilter,
+    EmailService
   ],
   exports: [
     TokenService,
@@ -21,6 +23,7 @@ import { GlobalExceptionFilter } from './infrastructure/filters/global-exception
     TenantGuard,
     ResponseInterceptor,
     GlobalExceptionFilter,
+    EmailService
   ],
 })
 export class SharedModule {}

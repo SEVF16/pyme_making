@@ -2,7 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInvoiceItemDto } from '../dto/create-invoice-item.dto';
 import { Invoice } from '../../domain/entities/invoice.entity';
 import { InvoiceRepositoryAbstract } from '../../domain/interfaces/invoice-repository.interface';
-import { ProductRepositoryAbstract } from '../../../products/domain/interfaces/product-repository.interface';
+import { ProductRepositoryAbstract } from 'src/modules/product/domain/interface/product-repository.interface';
+
 
 @Injectable()
 export class AddInvoiceItemUseCase {
