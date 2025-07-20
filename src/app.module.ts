@@ -8,6 +8,7 @@ import { UsersModule } from './modules/users/users.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { SharedModule } from './shared/shared.module';
 import { ProductsModule } from './modules/product/product.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
 
 
 @Module({
@@ -22,6 +23,7 @@ import { ProductsModule } from './modules/product/product.module';
     UsersModule,
     CustomersModule,
     ProductsModule,
+    InvoicesModule,
     // Aquí irán tus módulos de dominio
   ],
   controllers: [AppController],
