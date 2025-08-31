@@ -100,18 +100,18 @@ import { GetInvoicesUseCase } from './application/use-cases/get-invoices.use-cas
     InvoiceEventHandler,
 
     // Global Providers
-    {
-      provide: APP_FILTER,
-      useClass: InvoiceExceptionFilter,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: InvoiceResponseInterceptor,
-    },
-    {
-      provide: APP_PIPE,
-      useClass: InvoiceValidationPipe,
-    },
+    // {
+    //   provide: APP_FILTER,
+    //   useClass: InvoiceExceptionFilter,
+    // },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: InvoiceResponseInterceptor,
+    // },
+    // {
+    //   provide: APP_PIPE,
+    //   useClass: InvoiceValidationPipe,
+    // },
   ],
   exports: [
     InvoiceService,

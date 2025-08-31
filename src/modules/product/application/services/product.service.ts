@@ -5,7 +5,7 @@ import { ProductResponseDto } from '../dto/product-response.dto';
 import { ProductQueryDto } from '../dto/product-query.dto';
 import { UpdateStockDto } from '../dto/update-stock.dto';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto';
-import { FindOptions } from '../../../../shared/domain/interfaces/repository.interface';
+import { PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface';
 import { CreateProductUseCase } from '../use-case/create-product.use-case';
 import { GetProductUseCase } from '../use-case/get-product.use-case';
 import { UpdateProductUseCase } from '../use-case/update-product.use-case';
@@ -44,36 +44,31 @@ export class ProductService {
     return products.map(product => this.toResponseDto(product));
   }
 
-  async getProducts(queryDto: ProductQueryDto): Promise<PaginatedResponseDto<ProductResponseDto>> {
-    const findOptions: FindOptions = {
-      pagination: {
-        page: queryDto.page,
-        limit: queryDto.limit,
-      },
-      sort: {
-        field: queryDto.sortField || 'createdAt',
-        direction: queryDto.sortDirection || 'DESC',
-      },
-      filters: {
-        companyId: queryDto.companyId,
-        status: queryDto.status,
-        category: queryDto.category,
-        brand: queryDto.brand,
-        productType: queryDto.productType,
-        minPrice: queryDto.minPrice,
-        maxPrice: queryDto.maxPrice,
-        lowStock: queryDto.lowStock,
-        outOfStock: queryDto.outOfStock,
-      },
-      search: queryDto.search,
-    };
+async getProducts(queryDto: ProductQueryDto): Promise<PaginatedResponseDto<ProductResponseDto>> {
+  const options: PaginationOptions = {
+    limit: queryDto.limit,
+    offset: queryDto.offset, 
+    sortField: queryDto.sortField || 'createdAt',
+    sortDirection: queryDto.sortDirection || 'DESC',
+    search: queryDto.search,
+    filters: {
+      companyId: queryDto.companyId,
+      status: queryDto.status,
+      category: queryDto.category,
+      brand: queryDto.brand,
+      productType: queryDto.productType,
+      minPrice: queryDto.minPrice,
+      maxPrice: queryDto.maxPrice,
+      lowStock: queryDto.lowStock,
+      outOfStock: queryDto.outOfStock,
+    },
+  };
 
-    const result = await this.productRepository.findAll(findOptions);
-    
-    const products = result.data.map(product => this.toResponseDto(product));
-    
-    return new PaginatedResponseDto(products, result.total, result.page, result.limit);
-  }
+  const result = await this.productRepository.findAll(options);
+  const products = result.data.map(product => this.toResponseDto(product));
+  
+  return new PaginatedResponseDto(products, options.limit || 20, options.offset);
+}
 
   async getProductsByCategory(category: string, companyId: string): Promise<ProductResponseDto[]> {
     const products = await this.productRepository.findByCategory(category, companyId);

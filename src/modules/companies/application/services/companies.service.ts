@@ -8,7 +8,8 @@ import { GetCompanyUseCase } from '../use-cases/get-company.use-case';
 import { UpdateCompanyUseCase } from '../use-cases/update-company.use-case';
 import { CompanyRepositoryAbstract } from '../../domain/interfaces/company-repository.interface';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto'; // *** USANDO SHARED ***
-import { FindOptions } from '../../../../shared/domain/interfaces/repository.interface'; // *** USANDO SHARED ***
+import { 
+   PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface'; // *** USANDO SHARED ***
 
 @Injectable()
 export class CompanyService {
@@ -34,29 +35,29 @@ export class CompanyService {
     return company ? this.toResponseDto(company) : null;
   }
 
-  async getAllCompanies(queryDto: CompanyQueryDto): Promise<PaginatedResponseDto<CompanyResponseDto>> {
-    const findOptions: FindOptions = {
-      pagination: {
-        page: queryDto.page,
-        limit: queryDto.limit,
-      },
-      sort: {
-        field: queryDto.sortField || 'createdAt',
-        direction: queryDto.sortDirection || 'DESC',
-      },
-      filters: {
-        status: queryDto.status,
-        companySize: queryDto.companySize,
-      },
-      search: queryDto.search,
-    };
+async getAllCompanies(queryDto: CompanyQueryDto): Promise<PaginatedResponseDto<CompanyResponseDto>> {
+  const options: PaginationOptions = {
+    limit: queryDto.limit,
+    offset: queryDto.offset,
+    sortField: queryDto.sortField,
+    sortDirection: queryDto.sortDirection,
+    search: queryDto.search,
+    filters: {
+      status: queryDto.status,
+      companySize: queryDto.companySize,
+    },
+  };
 
-    const result = await this.companyRepository.findAll(findOptions);
-    
-    const companies = result.data.map(company => this.toResponseDto(company));
-    
-    return new PaginatedResponseDto(companies, result.total, result.page, result.limit);
-  }
+  const result = await this.companyRepository.findAll(options);
+  const companies = result.data.map(company => this.toResponseDto(company));
+  
+  // Solo pasar los 3 argumentos requeridos: data, limit, offset
+  return new PaginatedResponseDto(
+    companies, 
+    queryDto.limit || 20, 
+    queryDto.offset || 0  // Asegurar valor por defecto para offset
+  );
+}
 
   async updateCompany(id: string, updateCompanyDto: UpdateCompanyDto): Promise<CompanyResponseDto> {
     const company = await this.updateCompanyUseCase.execute(id, updateCompanyDto);

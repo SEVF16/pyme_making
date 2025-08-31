@@ -13,7 +13,7 @@ import { User } from '../../domain/entities/user.entity';
 import { VerifyEmailUseCase } from '../use-cases/verify-email.use-case';
 import { RequestPasswordResetUseCase, ResetPasswordUseCase } from '../use-cases/reset-password.use-case';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto'; // *** USANDO SHARED ***
-import { FindOptions } from '../../../../shared/domain/interfaces/repository.interface'; // *** USANDO SHARED ***
+import { PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface'; // *** USANDO SHARED ***
 
 @Injectable()
 export class UsersService {
@@ -48,30 +48,25 @@ export class UsersService {
     return users.map(user => this.toResponseDto(user));
   }
 
-  async getUsers(queryDto: UserQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
-    const findOptions: FindOptions = {
-      pagination: {
-        page: queryDto.page,
-        limit: queryDto.limit,
-      },
-      sort: {
-        field: queryDto.sortField || 'createdAt',
-        direction: queryDto.sortDirection || 'DESC',
-      },
-      filters: {
-        companyId: queryDto.companyId,
-        role: queryDto.role,
-        status: queryDto.status,
-      },
-      search: queryDto.search,
-    };
+async getUsers(queryDto: UserQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
+  const options: PaginationOptions = {
+    limit: queryDto.limit,
+    offset: queryDto.offset, 
+    sortField: queryDto.sortField || 'createdAt',
+    sortDirection: queryDto.sortDirection || 'DESC',
+    search: queryDto.search,
+    filters: {
+      companyId: queryDto.companyId,
+      role: queryDto.role,
+      status: queryDto.status,
+    },
+  };
 
-    const result = await this.userRepository.findAll(findOptions);
-    
-    const users = result.data.map(user => this.toResponseDto(user));
-    
-    return new PaginatedResponseDto(users, result.total, result.page, result.limit);
-  }
+  const result = await this.userRepository.findAll(options);
+  const users = result.data.map(user => this.toResponseDto(user));
+  
+  return new PaginatedResponseDto(users, options.limit || 20, options.offset);
+}
 
   async updateUser(id: string, updateUserDto: UpdateUserDto, currentUser?: User): Promise<UserResponseDto> {
     const user = await this.updateUserUseCase.execute(id, updateUserDto, currentUser);

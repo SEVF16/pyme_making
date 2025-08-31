@@ -1,4 +1,4 @@
-import { BaseRepositoryInterface, FindOptions, PaginatedResult } from 'src/shared/domain/interfaces/repository.interface';
+import { BaseRepositoryInterface, PaginatedResult, PaginationOptions } from 'src/shared/domain/interfaces/repository.interface';
 import { ObjectLiteral, Repository, SelectQueryBuilder } from 'typeorm';
 import { PaginationService } from '../../application/services/pagination.service';
 
@@ -13,21 +13,20 @@ export abstract class BaseRepository<T extends ObjectLiteral> implements BaseRep
     return await this.repository.findOne({ where: { id } as any });
   }
 
-  async findAll(options?: FindOptions): Promise<PaginatedResult<T>> {
+  async findAll(options: PaginationOptions = {}): Promise<PaginatedResult<T>> {
     const queryBuilder = this.repository.createQueryBuilder(this.getAlias());
     
-    if (options?.filters) {
+    if (options.filters) {
       this.applyFilters(queryBuilder, options.filters);
     }
 
-    return await this.paginationService.paginate(queryBuilder, {
-      page: options?.pagination?.page,
-      limit: options?.pagination?.limit,
-      sortField: options?.sort?.field,
-      sortDirection: options?.sort?.direction,
-      search: options?.search,
-    });
+    if (options.search) {
+      this.applySearch(queryBuilder, options.search);
+    }
+
+    return await this.paginationService.paginate(queryBuilder, options);
   }
+
 
  async create(entityData: Partial<T>): Promise<T> {
     const entity = this.repository.create(entityData as T);
@@ -63,4 +62,5 @@ export abstract class BaseRepository<T extends ObjectLiteral> implements BaseRep
 
   protected abstract getAlias(): string;
   protected abstract applyFilters(queryBuilder: SelectQueryBuilder<T>, filters: any): void;
+  protected abstract applySearch(queryBuilder: SelectQueryBuilder<T>, search: string): void;
 }

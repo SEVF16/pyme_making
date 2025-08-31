@@ -5,7 +5,7 @@ import { Invoice } from '../../domain/entities/invoice.entity';
 import { InvoiceItem } from '../../domain/entities/invoice-item.entity';
 import { InvoiceRepositoryAbstract } from '../../domain/interfaces/invoice-repository.interface';
 import { PaginationService } from '../../../../shared/application/services/pagination.service';
-import { FindOptions, PaginatedResult } from '../../../../shared/domain/interfaces/repository.interface';
+import { PaginatedResult, PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface';
 
 @Injectable()
 export class InvoiceRepository implements InvoiceRepositoryAbstract {
@@ -22,21 +22,19 @@ export class InvoiceRepository implements InvoiceRepositoryAbstract {
     return await this.invoiceRepository.findOne({ where: { id } });
   }
 
-  async findAll(options?: FindOptions): Promise<PaginatedResult<Invoice>> {
-    const queryBuilder = this.invoiceRepository.createQueryBuilder('invoice');
-    
-    if (options?.filters) {
-      this.applyFilters(queryBuilder, options.filters);
-    }
+async findAll(options?: PaginationOptions): Promise<PaginatedResult<Invoice>> {
+ const queryBuilder = this.invoiceRepository.createQueryBuilder('invoice');
+ 
+ if (options?.filters) {
+   this.applyFilters(queryBuilder, options.filters);
+ }
 
-    return await this.paginationService.paginate(queryBuilder, {
-      page: options?.pagination?.page,
-      limit: options?.pagination?.limit,
-      sortField: options?.sort?.field,
-      sortDirection: options?.sort?.direction,
-      search: options?.search,
-    });
-  }
+ if (options?.search) {
+   this.applySearch(queryBuilder, options.search);
+ }
+
+ return await this.paginationService.paginate(queryBuilder, options);
+}
 
   async create(entity: Partial<Invoice>): Promise<Invoice> {
     const invoice = this.invoiceRepository.create(entity);
@@ -364,7 +362,14 @@ private async recalculateInvoiceTotals(invoiceId: string, entityManager: any): P
     total: Number(total),
   });
 }
-
+protected applySearch(queryBuilder: SelectQueryBuilder<Invoice>, search: string): void {
+  queryBuilder.andWhere(
+    `(invoice.invoiceNumber ILIKE :search OR 
+      invoice.customerData->>'name' ILIKE :search OR
+      invoice.notes ILIKE :search)`,
+    { search: `%${search}%` }
+  );
+}
   private applyFilters(queryBuilder: SelectQueryBuilder<Invoice>, filters: any): void {
     if (filters.companyId) {
       queryBuilder.andWhere('invoice.companyId = :companyId', { companyId: filters.companyId });

@@ -5,6 +5,7 @@ import { User } from '../../domain/entities/user.entity';
 import { UserRepositoryAbstract, FindUsersOptions, PaginatedUsers } from '../../domain/interfaces/user-repository.interface';
 import { BaseRepository } from '../../../../shared/infrastructure/repository/base.repository'; // *** USANDO SHARED ***
 import { PaginationService } from '../../../../shared/application/services/pagination.service'; // *** USANDO SHARED ***
+import { PaginationOptions } from 'src/shared/domain/interfaces/repository.interface';
 
 @Injectable()
 export class UserRepository extends BaseRepository<User> implements UserRepositoryAbstract {
@@ -37,10 +38,19 @@ export class UserRepository extends BaseRepository<User> implements UserReposito
       order: { createdAt: 'DESC' }
     });
   }
-
-  async findWithOptions(options: FindUsersOptions): Promise<PaginatedUsers> {
-    return await this.findAll(options);
-  }
+async findWithOptions(options: FindUsersOptions): Promise<PaginatedUsers> {
+  // Agregar los filtros específicos al objeto options
+  const optionsWithFilters: PaginationOptions = {
+    ...options,
+    filters: {
+      companyId: options.companyId,
+      role: options.role,
+      status: options.status,
+    },
+  };
+  
+  return await this.findAll(optionsWithFilters);
+}
 
   async findByEmailVerificationToken(token: string): Promise<User | null> {
     return await this.userRepository.findOne({ 
@@ -63,7 +73,13 @@ export class UserRepository extends BaseRepository<User> implements UserReposito
   protected getAlias(): string {
     return 'user';
   }
-
+// AGREGAR:
+protected applySearch(queryBuilder: SelectQueryBuilder<User>, search: string): void {
+  queryBuilder.andWhere(
+    '(user.firstName ILIKE :search OR user.lastName ILIKE :search OR user.email ILIKE :search)',
+    { search: `%${search}%` }
+  );
+}
   protected applyFilters(queryBuilder: SelectQueryBuilder<User>, filters: any): void {
     if (filters.companyId) {
       queryBuilder.andWhere('user.companyId = :companyId', { companyId: filters.companyId });

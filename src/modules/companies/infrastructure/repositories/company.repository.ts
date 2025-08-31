@@ -31,6 +31,12 @@ export class CompanyRepository extends BaseRepository<Company> implements Compan
     });
   }
 
+  protected applySearch(queryBuilder: SelectQueryBuilder<Company>, search: string): void {
+  queryBuilder.andWhere(
+    '(company.businessName ILIKE :search OR company.fantasyName ILIKE :search OR company.rut ILIKE :search)',
+    { search: `%${search}%` }
+  );
+}
   protected getAlias(): string {
     return 'company';
   }

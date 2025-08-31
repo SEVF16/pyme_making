@@ -34,6 +34,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     const errorResponse = {
       success: false,
+       data: null, 
       statusCode: status,
       message,
       timestamp: new Date().toISOString(),

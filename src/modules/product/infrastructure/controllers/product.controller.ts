@@ -40,7 +40,6 @@ import { ProductService } from '../../application/services/product.service';
 @ApiTags('Products')
 @Controller('products')
 @UseGuards(TenantGuard)
-@UseInterceptors(ResponseInterceptor)
 @ApiBearerAuth()
 @ApiHeader({
   name: 'X-Tenant-ID',

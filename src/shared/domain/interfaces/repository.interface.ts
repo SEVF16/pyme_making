@@ -1,37 +1,26 @@
+// AGREGAR estas interfaces al inicio del archivo:
 export interface PaginationOptions {
-  page?: number;
   limit?: number;
-}
-
-export interface SortOptions {
-  field: string;
-  direction: 'ASC' | 'DESC';
-}
-
-export interface FilterOptions {
-  [key: string]: any;
-}
-
-export interface FindOptions {
-  pagination?: PaginationOptions;
-  sort?: SortOptions;
-  filters?: FilterOptions;
+  offset?: number; 
+  sortField?: string;
+  sortDirection?: 'ASC' | 'DESC';
+  filters?: Record<string, any>;
   search?: string;
 }
 
 export interface PaginatedResult<T> {
   data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
   hasNext: boolean;
-  hasPrev: boolean;
+  offset?: number; 
+  limit: number;
+  currentCursor?: string;
+  timestamp: string;
 }
 
+// CAMBIAR la interface BaseRepositoryInterface:
 export interface BaseRepositoryInterface<T> {
   findById(id: string): Promise<T | null>;
-  findAll(options?: FindOptions): Promise<PaginatedResult<T>>;
+  findAll(options?: PaginationOptions): Promise<PaginatedResult<T>>; // ← CAMBIO AQUÍ
   create(entity: Partial<T>): Promise<T>;
   update(id: string, entity: Partial<T>): Promise<T>;
   delete(id: string): Promise<void>;

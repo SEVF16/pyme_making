@@ -1,58 +1,45 @@
+// pagination.service.ts
 import { Injectable } from '@nestjs/common';
-import { ObjectLiteral, Repository, SelectQueryBuilder } from 'typeorm';
-import { PaginationDto } from '../dto/pagination.dto';
-import { PaginatedResult, FindOptions } from '../../domain/interfaces/repository.interface';
+import { ObjectLiteral, SelectQueryBuilder } from 'typeorm';
+import { PaginationOptions, PaginatedResult } from '../../domain/interfaces/repository.interface';
 
 @Injectable()
 export class PaginationService {
   async paginate<T extends ObjectLiteral>(
     queryBuilder: SelectQueryBuilder<T>,
-    options: PaginationDto,
+    options: PaginationOptions = {},
   ): Promise<PaginatedResult<T>> {
-    const page = options.page || 1;
-    const limit = options.limit || 10;
-    const skip = (page - 1) * limit;
+    const {
+      limit = 20,
+      offset = 0,
+      sortField = 'createdAt',
+      sortDirection = 'DESC',
+    } = options;
 
     // Aplicar ordenamiento
-    if (options.sortField) {
-      queryBuilder.orderBy(
-        `${queryBuilder.alias}.${options.sortField}`,
-        options.sortDirection || 'DESC'
-      );
-    } else {
-      queryBuilder.orderBy(`${queryBuilder.alias}.createdAt`, 'DESC');
-    }
+    const orderDirection = sortDirection.toUpperCase() as 'ASC' | 'DESC';
+    queryBuilder.orderBy(`${queryBuilder.alias}.${sortField}`, orderDirection);
 
-    // Aplicar búsqueda si se proporciona
-    if (options.search) {
-      this.applySearch(queryBuilder, options.search);
-    }
+    // Aplicar OFFSET y LIMIT
+    queryBuilder.offset(offset);
+    queryBuilder.limit(limit + 1); // Tomamos uno extra para verificar si hay más
 
-    const [data, total] = await queryBuilder
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
+    const data = await queryBuilder.getMany();
+
+    // Verificar si hay más registros
+    const hasNext = data.length > limit;
+    
+    // Si hay más, quitamos el registro extra
+    if (hasNext) {
+      data.pop();
+    }
 
     return {
       data,
-      total,
-      page,
       limit,
-      totalPages: Math.ceil(total / limit),
-      hasNext: page < Math.ceil(total / limit),
-      hasPrev: page > 1,
+      offset,
+      hasNext,
+      timestamp: new Date().toISOString(),
     };
-  }
-
-private applySearch<T extends ObjectLiteral>(queryBuilder: SelectQueryBuilder<T>, search: string): void {
-    // Esta implementación debe ser sobrescrita por cada repositorio específico
-    // o se puede hacer más genérica usando metadatos de las entidades
-  }
-
-  validatePaginationParams(page?: number, limit?: number): { page: number; limit: number } {
-    const validPage = Math.max(1, page || 1);
-    const validLimit = Math.min(100, Math.max(1, limit || 10));
-    
-    return { page: validPage, limit: validLimit };
   }
 }

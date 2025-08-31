@@ -72,18 +72,18 @@ import { CustomerValidationMiddleware } from './infrastructure/middleware/custom
     CustomerOwnershipGuard,
 
     // Global Providers
-    {
-      provide: APP_FILTER,
-      useClass: CustomerExceptionFilter,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: CustomerResponseInterceptor,
-    },
-    {
-      provide: APP_PIPE,
-      useClass: CustomerValidationPipe,
-    },
+    // {
+    //   provide: APP_FILTER,
+    //   useClass: CustomerExceptionFilter,
+    // },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: CustomerResponseInterceptor,
+    // },
+    // {
+    //   provide: APP_PIPE,
+    //   useClass: CustomerValidationPipe,
+    // },
   ],
   exports: [
     CustomerService,

@@ -1,7 +1,7 @@
 import { User } from '../entities/user.entity';
-import { BaseRepositoryInterface, FindOptions, PaginatedResult } from '../../../../shared/domain/interfaces/repository.interface';
+import { BaseRepositoryInterface,  PaginatedResult, PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface';
 
-export interface FindUsersOptions extends FindOptions {
+export interface FindUsersOptions extends PaginationOptions {
   companyId?: string;
   role?: string;
   status?: string;
@@ -12,7 +12,7 @@ export interface PaginatedUsers extends PaginatedResult<User> {}
 export abstract class UserRepositoryAbstract implements BaseRepositoryInterface<User> {
   // Métodos heredados de BaseRepositoryInterface
   abstract findById(id: string): Promise<User | null>;
-  abstract findAll(options?: FindOptions): Promise<PaginatedResult<User>>;
+  abstract findAll(options?: PaginationOptions): Promise<PaginatedResult<User>>;
   abstract create(entity: Partial<User>): Promise<User>;
   abstract update(id: string, entity: Partial<User>): Promise<User>;
   abstract delete(id: string): Promise<void>;

@@ -78,7 +78,12 @@ export class CustomerRepository extends BaseRepository<Customer> implements Cust
   protected getAlias(): string {
     return 'customer';
   }
-
+  protected applySearch(queryBuilder: SelectQueryBuilder<Customer>, search: string): void {
+    queryBuilder.andWhere(
+      '(customer.firstName ILIKE :search OR customer.lastName ILIKE :search OR customer.email ILIKE :search OR customer.rut ILIKE :search)',
+      { search: `%${search}%` }
+    );
+  }
   protected applyFilters(queryBuilder: SelectQueryBuilder<Customer>, filters: any): void {
     if (filters.companyId) {
       queryBuilder.andWhere('customer.companyId = :companyId', { companyId: filters.companyId });

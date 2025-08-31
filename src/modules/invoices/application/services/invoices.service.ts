@@ -14,7 +14,7 @@ import { RemoveInvoiceItemUseCase } from '../use-cases/remove-invoice-item.use-c
 import { CalculateInvoiceTotalsUseCase } from '../use-cases/calculate-invoice-totals.use-case';
 import { InvoiceRepositoryAbstract } from '../../domain/interfaces/invoice-repository.interface';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto';
-import { FindOptions } from '../../../../shared/domain/interfaces/repository.interface';
+import { PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface';
 
 @Injectable()
 export class InvoiceService {
@@ -50,38 +50,34 @@ export class InvoiceService {
     return invoices.map(invoice => this.toResponseDto(invoice));
   }
 
-  async getInvoices(queryDto: InvoiceQueryDto): Promise<PaginatedResponseDto<InvoiceResponseDto>> {
-    const findOptions: FindOptions = {
-      pagination: {
-        page: queryDto.page,
-        limit: queryDto.limit,
-      },
-      sort: {
-        field: queryDto.sortField || 'createdAt',
-        direction: queryDto.sortDirection || 'DESC',
-      },
-      filters: {
-        companyId: queryDto.companyId,
-        customerId: queryDto.customerId,
-        type: queryDto.type,
-        status: queryDto.status,
-        issueDateFrom: queryDto.issueDateFrom,
-        issueDateTo: queryDto.issueDateTo,
-        dueDateFrom: queryDto.dueDateFrom,
-        dueDateTo: queryDto.dueDateTo,
-        currency: queryDto.currency,
-        overdue: queryDto.overdue,
-        paymentMethod: queryDto.paymentMethod,
-      },
-      search: queryDto.search,
-    };
+async getInvoices(queryDto: InvoiceQueryDto): Promise<PaginatedResponseDto<InvoiceResponseDto>> {
+  const options: PaginationOptions = {
+    limit: queryDto.limit,
+    offset: queryDto.offset, 
+    sortField: queryDto.sortField || 'createdAt',
+    sortDirection: queryDto.sortDirection || 'DESC',
+    search: queryDto.search,
+    filters: {
+      companyId: queryDto.companyId,
+      customerId: queryDto.customerId,
+      type: queryDto.type,
+      status: queryDto.status,
+      issueDateFrom: queryDto.issueDateFrom,
+      issueDateTo: queryDto.issueDateTo,
+      dueDateFrom: queryDto.dueDateFrom,
+      dueDateTo: queryDto.dueDateTo,
+      currency: queryDto.currency,
+      overdue: queryDto.overdue,
+      paymentMethod: queryDto.paymentMethod,
+    },
+  };
 
-    const result = await this.invoiceRepository.findAll(findOptions);
-    
-    const invoices = result.data.map(invoice => this.toResponseDto(invoice));
-    
-    return new PaginatedResponseDto(invoices, result.total, result.page, result.limit);
-  }
+  const result = await this.invoiceRepository.findAll(options);
+  const invoices = result.data.map(invoice => this.toResponseDto(invoice));
+  
+  return new PaginatedResponseDto(invoices, options.limit || 20, options.offset);
+}
+
 
   async getInvoicesByCustomer(customerId: string, companyId: string): Promise<InvoiceResponseDto[]> {
     const invoices = await this.invoiceRepository.findByCustomer(customerId, companyId);

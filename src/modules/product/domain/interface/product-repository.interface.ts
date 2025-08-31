@@ -1,29 +1,16 @@
 import { Product } from '../entities/product.entity';
 import { StockMovement } from '../entities/stock-movement.entity';
-import { BaseRepositoryInterface, FindOptions, PaginatedResult } from '../../../../shared/domain/interfaces/repository.interface';
+import { BaseRepositoryInterface, PaginatedResult, PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface';
 
-export interface FindProductsOptions extends FindOptions {
-  companyId?: string;
-  status?: string;
-  category?: string;
-  brand?: string;
-  productType?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  lowStock?: boolean;
-  outOfStock?: boolean;
-  tags?: string[];
-}
 
 export abstract class ProductRepositoryAbstract implements BaseRepositoryInterface<Product> {
   // Métodos heredados de BaseRepositoryInterface
   abstract findById(id: string): Promise<Product | null>;
-  abstract findAll(options?: FindOptions): Promise<PaginatedResult<Product>>;
   abstract create(entity: Partial<Product>): Promise<Product>;
   abstract update(id: string, entity: Partial<Product>): Promise<Product>;
   abstract delete(id: string): Promise<void>;
   abstract softDelete?(id: string): Promise<void>;
-
+  abstract findAll(options?: PaginationOptions): Promise<PaginatedResult<Product>>;
   // Métodos específicos de Product
   abstract findBySku(sku: string): Promise<Product | null>;
   abstract findBySkuAndCompany(sku: string, companyId: string): Promise<Product | null>;
@@ -44,5 +31,5 @@ export abstract class ProductRepositoryAbstract implements BaseRepositoryInterfa
   // Métodos para movimientos de stock
   abstract createStockMovement(movement: Partial<StockMovement>): Promise<StockMovement>;
   abstract getStockMovements(productId: string): Promise<StockMovement[]>;
-  abstract getStockMovementsByCompany(companyId: string, options?: FindOptions): Promise<PaginatedResult<StockMovement>>;
+  abstract getStockMovementsByCompany(companyId: string, options?: PaginationOptions): Promise<PaginatedResult<StockMovement>>;
 }

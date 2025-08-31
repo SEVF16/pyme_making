@@ -35,7 +35,6 @@ import { PaginatedResponseDto } from '../../../../shared/application/dto/paginat
 @ApiTags('users')
 @Controller('users')
 @UseGuards(TenantGuard)
-@UseInterceptors(ResponseInterceptor)
 @ApiBearerAuth('JWT-auth')
 export class UsersController {
   constructor(

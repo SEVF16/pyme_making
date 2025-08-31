@@ -60,10 +60,6 @@ export class AuthController {
       companyId: createUserDto.companyId
     });
 
-    if (existingAdmins.total > 0) {
-      throw new Error('Ya existe un administrador');
-    }
-
     // Crear usuario
     const user = await this.usersService.createUser(createUserDto);
     

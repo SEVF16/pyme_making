@@ -46,10 +46,10 @@ import { CompanyExceptionFilter } from './infrastructure/filters/company-excepti
       useClass: CompanyRepository,
     },
 
-     {
-      provide: APP_FILTER,
-      useClass: CompanyExceptionFilter,
-    },
+    //  {
+    //   provide: APP_FILTER,
+    //   useClass: CompanyExceptionFilter,
+    // },
   ],
   exports: [
     CompanyService,

@@ -1,16 +1,11 @@
 import { Customer } from '../entities/customer.entity';
-import { BaseRepositoryInterface, FindOptions, PaginatedResult } from '../../../../shared/domain/interfaces/repository.interface';
+import { BaseRepositoryInterface, PaginatedResult, PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface';
 
-export interface FindCustomersOptions extends FindOptions {
-  companyId?: string;
-  status?: string;
-  customerType?: string;
-}
 
 export abstract class CustomerRepositoryAbstract implements BaseRepositoryInterface<Customer> {
   // Métodos heredados de BaseRepositoryInterface
   abstract findById(id: string): Promise<Customer | null>;
-  abstract findAll(options?: FindOptions): Promise<PaginatedResult<Customer>>;
+  abstract findAll(options?: PaginationOptions): Promise<PaginatedResult<Customer>>;
   abstract create(entity: Partial<Customer>): Promise<Customer>;
   abstract update(id: string, entity: Partial<Customer>): Promise<Customer>;
   abstract delete(id: string): Promise<void>;

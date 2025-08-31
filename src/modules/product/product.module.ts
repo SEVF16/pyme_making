@@ -61,18 +61,18 @@ import { CompaniesModule } from '../companies/companies.module';
     ProductOwnershipGuard,
 
     // Global Providers
-    {
-      provide: APP_FILTER,
-      useClass: ProductExceptionFilter,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ProductResponseInterceptor,
-    },
-    {
-      provide: APP_PIPE,
-      useClass: ProductValidationPipe,
-    },
+    // {
+    //   provide: APP_FILTER,
+    //   useClass: ProductExceptionFilter,
+    // },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: ProductResponseInterceptor,
+    // },
+    // {
+    //   provide: APP_PIPE,
+    //   useClass: ProductValidationPipe,
+    // },
   ],
   exports: [
     ProductService,

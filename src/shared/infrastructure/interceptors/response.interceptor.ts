@@ -9,8 +9,9 @@ import { map } from 'rxjs/operators';
 
 export interface ApiResponse<T> {
   success: boolean;
-  data: T;
-  message?: string;
+  data: T | null;
+  statusCode: number | null;
+  message: string | null;
   timestamp: string;
   path: string;
 }
@@ -24,6 +25,8 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, ApiResponse<T>
       map(data => ({
         success: true,
         data,
+        statusCode: null, 
+        message: null, 
         timestamp: new Date().toISOString(),
         path: request.url,
       })),

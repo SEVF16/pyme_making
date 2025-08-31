@@ -1,30 +1,17 @@
 import { Invoice } from '../entities/invoice.entity';
 import { InvoiceItem } from '../entities/invoice-item.entity';
-import { BaseRepositoryInterface, FindOptions, PaginatedResult } from '../../../../shared/domain/interfaces/repository.interface';
+import { BaseRepositoryInterface, PaginatedResult, PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface';
 
-export interface FindInvoicesOptions extends FindOptions {
-  companyId?: string;
-  customerId?: string;
-  type?: string;
-  status?: string;
-  issueDateFrom?: string;
-  issueDateTo?: string;
-  dueDateFrom?: string;
-  dueDateTo?: string;
-  currency?: string;
-  overdue?: boolean;
-  paymentMethod?: string;
-}
+
 
 export abstract class InvoiceRepositoryAbstract implements BaseRepositoryInterface<Invoice> {
   // Métodos heredados de BaseRepositoryInterface
   abstract findById(id: string): Promise<Invoice | null>;
-  abstract findAll(options?: FindOptions): Promise<PaginatedResult<Invoice>>;
   abstract create(entity: Partial<Invoice>): Promise<Invoice>;
   abstract update(id: string, entity: Partial<Invoice>): Promise<Invoice>;
   abstract delete(id: string): Promise<void>;
   abstract softDelete?(id: string): Promise<void>;
-
+  abstract findAll(options?: PaginationOptions): Promise<PaginatedResult<Invoice>>;
   // Métodos específicos de Invoice
   abstract findByIdWithItems(id: string): Promise<Invoice | null>;
   abstract findByInvoiceNumber(invoiceNumber: string, companyId: string): Promise<Invoice | null>;

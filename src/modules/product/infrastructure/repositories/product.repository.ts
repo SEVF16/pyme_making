@@ -6,7 +6,7 @@ import { StockMovement } from '../../domain/entities/stock-movement.entity';
 
 import { BaseRepository } from '../../../../shared/infrastructure/repository/base.repository'; // *** USANDO SHARED ***
 import { PaginationService } from '../../../../shared/application/services/pagination.service'; // *** USANDO SHARED ***
-import { FindOptions, PaginatedResult } from '../../../../shared/domain/interfaces/repository.interface';
+import {  PaginatedResult, PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface';
 import { ProductRepositoryAbstract } from '../../domain/interface/product-repository.interface';
 
 @Injectable()
@@ -64,7 +64,12 @@ export class ProductRepository extends BaseRepository<Product> implements Produc
       where: { barcode, companyId } 
     });
   }
-
+protected applySearch(queryBuilder: SelectQueryBuilder<Product>, search: string): void {
+  queryBuilder.andWhere(
+    '(product.name ILIKE :search OR product.description ILIKE :search OR product.sku ILIKE :search OR product.barcode ILIKE :search)',
+    { search: `%${search}%` }
+  );
+}
   async findLowStockProducts(companyId: string): Promise<Product[]> {
     return await this.productRepository
       .createQueryBuilder('product')
@@ -158,19 +163,20 @@ export class ProductRepository extends BaseRepository<Product> implements Produc
     });
   }
 
-  async getStockMovementsByCompany(companyId: string, options?: FindOptions): Promise<PaginatedResult<StockMovement>> {
-    const queryBuilder = this.stockMovementRepository
-      .createQueryBuilder('movement')
-      .leftJoinAndSelect('movement.product', 'product')
-      .where('product.companyId = :companyId', { companyId });
+async getStockMovementsByCompany(companyId: string, options?: PaginationOptions): Promise<PaginatedResult<StockMovement>> {
+  const queryBuilder = this.stockMovementRepository
+    .createQueryBuilder('movement')
+    .leftJoinAndSelect('movement.product', 'product')
+    .where('product.companyId = :companyId', { companyId });
 
-    return await this.paginationService.paginate(queryBuilder, {
-      page: options?.pagination?.page,
-      limit: options?.pagination?.limit,
-      sortField: options?.sort?.field || 'createdAt',
-      sortDirection: options?.sort?.direction || 'DESC',
-    });
-  }
+  return await this.paginationService.paginate(queryBuilder, {
+    limit: options?.limit,
+    offset: options?.offset, 
+    sortField: options?.sortField || 'createdAt',
+    sortDirection: options?.sortDirection || 'DESC',
+    filters: { companyId },
+  });
+}
 
   protected getAlias(): string {
     return 'product';

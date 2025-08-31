@@ -74,14 +74,14 @@ import { AuthService } from './application/services/auth.service';
     },
 
     // Global Providers
-    {
-      provide: APP_FILTER,
-      useClass: UserExceptionFilter,
-    },
-    {
-      provide: APP_PIPE,
-      useClass: UserValidationPipe,
-    },
+    // {
+    //   provide: APP_FILTER,
+    //   useClass: UserExceptionFilter,
+    // },
+    // {
+    //   provide: APP_PIPE,
+    //   useClass: UserValidationPipe,
+    // },
   ],
   exports: [
     UsersService,

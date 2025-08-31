@@ -42,7 +42,6 @@ import { PaginatedResponseDto } from '../../../../shared/application/dto/paginat
 @ApiTags('Invoices')
 @Controller('invoices')
 @UseGuards(TenantGuard)
-@UseInterceptors(ResponseInterceptor)
 @ApiBearerAuth()
 @ApiHeader({
   name: 'X-Tenant-ID',

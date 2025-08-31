@@ -27,7 +27,6 @@ import { CurrentTenant } from '../../../../shared/infrastructure/decorators/curr
 @ApiTags('Companies')
 @Controller('companies')
 @UseGuards(TenantGuard)
-@UseInterceptors(ResponseInterceptor)
 @ApiHeader({
   name: 'X-Tenant-ID',
   description: 'ID de la empresa (tenant)',

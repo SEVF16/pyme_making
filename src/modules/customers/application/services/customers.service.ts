@@ -9,7 +9,8 @@ import { UpdateCustomerUseCase } from '../use-cases/update-customer.use-case';
 import { GetCustomersByCompanyUseCase } from '../use-cases/get-customers-by-company.use-case';
 import { CustomerRepositoryAbstract } from '../../domain/interfaces/customer-repository.interface';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto'; // *** USANDO SHARED ***
-import { FindOptions } from '../../../../shared/domain/interfaces/repository.interface'; // *** USANDO SHARED ***
+import { PaginationOptions } from 'src/shared/domain/interfaces/repository.interface';
+
 
 @Injectable()
 export class CustomerService {
@@ -41,30 +42,25 @@ export class CustomerService {
     return customers.map(customer => this.toResponseDto(customer));
   }
 
-  async getCustomers(queryDto: CustomerQueryDto): Promise<PaginatedResponseDto<CustomerResponseDto>> {
-    const findOptions: FindOptions = {
-      pagination: {
-        page: queryDto.page,
-        limit: queryDto.limit,
-      },
-      sort: {
-        field: queryDto.sortField || 'createdAt',
-        direction: queryDto.sortDirection || 'DESC',
-      },
-      filters: {
-        companyId: queryDto.companyId,
-        status: queryDto.status,
-        customerType: queryDto.customerType,
-      },
-      search: queryDto.search,
-    };
+async getCustomers(queryDto: CustomerQueryDto): Promise<PaginatedResponseDto<CustomerResponseDto>> {
+  const options: PaginationOptions = {
+    limit: queryDto.limit,
+    offset: queryDto.offset, 
+    sortField: queryDto.sortField || 'createdAt',
+    sortDirection: queryDto.sortDirection || 'DESC',
+    search: queryDto.search,
+    filters: {
+      companyId: queryDto.companyId,
+      status: queryDto.status,
+      customerType: queryDto.customerType,
+    },
+  };
 
-    const result = await this.customerRepository.findAll(findOptions);
-    
-    const customers = result.data.map(customer => this.toResponseDto(customer));
-    
-    return new PaginatedResponseDto(customers, result.total, result.page, result.limit);
-  }
+  const result = await this.customerRepository.findAll(options);
+  const customers = result.data.map(customer => this.toResponseDto(customer));
+  
+  return new PaginatedResponseDto(customers, options.limit || 20, options.offset);
+}
 
   async getCustomersByStatus(status: string, companyId: string): Promise<CustomerResponseDto[]> {
     const customers = await this.customerRepository.findByStatusAndCompany(status, companyId);
