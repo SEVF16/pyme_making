@@ -57,7 +57,7 @@ async getCustomers(queryDto: CustomerQueryDto): Promise<PaginatedResponseDto<Cus
   };
 
   const result = await this.customerRepository.findAll(options);
-  const customers = result.data.map(customer => this.toResponseDto(customer));
+  const customers = result.result.map(customer => this.toResponseDto(customer));
   
   return new PaginatedResponseDto(customers, options.limit || 20, options.offset);
 }

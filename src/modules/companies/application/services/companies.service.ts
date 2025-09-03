@@ -49,7 +49,7 @@ async getAllCompanies(queryDto: CompanyQueryDto): Promise<PaginatedResponseDto<C
   };
 
   const result = await this.companyRepository.findAll(options);
-  const companies = result.data.map(company => this.toResponseDto(company));
+  const companies = result.result.map(company => this.toResponseDto(company));
   
   // Solo pasar los 3 argumentos requeridos: data, limit, offset
   return new PaginatedResponseDto(

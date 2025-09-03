@@ -7,7 +7,7 @@ import { PaginationOptions } from '../../../../shared/domain/interfaces/reposito
 export class GetInvoicesUseCase {
  constructor(private readonly invoiceRepository: InvoiceRepositoryAbstract) {}
 
- async execute(options: PaginationOptions): Promise<{ data: Invoice[]}> {
+ async execute(options: PaginationOptions): Promise<{ result: Invoice[]}> {
    const result = await this.invoiceRepository.findAll(options);
    return await this.invoiceRepository.findAll(options);
  }

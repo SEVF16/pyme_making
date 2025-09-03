@@ -24,18 +24,18 @@ export class PaginationService {
     queryBuilder.offset(offset);
     queryBuilder.limit(limit + 1); // Tomamos uno extra para verificar si hay más
 
-    const data = await queryBuilder.getMany();
+    const result = await queryBuilder.getMany();
 
     // Verificar si hay más registros
-    const hasNext = data.length > limit;
+    const hasNext = result.length > limit;
     
     // Si hay más, quitamos el registro extra
     if (hasNext) {
-      data.pop();
+      result.pop();
     }
 
     return {
-      data,
+      result,
       limit,
       offset,
       hasNext,

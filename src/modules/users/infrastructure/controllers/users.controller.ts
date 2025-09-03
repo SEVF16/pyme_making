@@ -172,7 +172,7 @@ export class UsersController {
       companyId: createUserDto.companyId
     });
 
-    if (existingAdmins.data.length > 0) {
+    if (existingAdmins.result.length > 0) {
       throw new Error('Ya existe un administrador');
     }
 

@@ -65,7 +65,7 @@ async getProducts(queryDto: ProductQueryDto): Promise<PaginatedResponseDto<Produ
   };
 
   const result = await this.productRepository.findAll(options);
-  const products = result.data.map(product => this.toResponseDto(product));
+  const products = result.result.map(product => this.toResponseDto(product));
   
   return new PaginatedResponseDto(products, options.limit || 20, options.offset);
 }

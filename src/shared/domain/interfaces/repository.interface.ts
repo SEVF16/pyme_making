@@ -9,7 +9,7 @@ export interface PaginationOptions {
 }
 
 export interface PaginatedResult<T> {
-  data: T[];
+  result: T[];
   hasNext: boolean;
   offset?: number; 
   limit: number;
@@ -20,7 +20,7 @@ export interface PaginatedResult<T> {
 // CAMBIAR la interface BaseRepositoryInterface:
 export interface BaseRepositoryInterface<T> {
   findById(id: string): Promise<T | null>;
-  findAll(options?: PaginationOptions): Promise<PaginatedResult<T>>; // ← CAMBIO AQUÍ
+  findAll(options?: PaginationOptions): Promise<PaginatedResult<T>>;
   create(entity: Partial<T>): Promise<T>;
   update(id: string, entity: Partial<T>): Promise<T>;
   delete(id: string): Promise<void>;

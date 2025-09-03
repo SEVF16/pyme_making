@@ -73,7 +73,7 @@ async getInvoices(queryDto: InvoiceQueryDto): Promise<PaginatedResponseDto<Invoi
   };
 
   const result = await this.invoiceRepository.findAll(options);
-  const invoices = result.data.map(invoice => this.toResponseDto(invoice));
+  const invoices = result.result.map(invoice => this.toResponseDto(invoice));
   
   return new PaginatedResponseDto(invoices, options.limit || 20, options.offset);
 }

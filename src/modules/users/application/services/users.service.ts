@@ -63,7 +63,7 @@ async getUsers(queryDto: UserQueryDto): Promise<PaginatedResponseDto<UserRespons
   };
 
   const result = await this.userRepository.findAll(options);
-  const users = result.data.map(user => this.toResponseDto(user));
+  const users = result.result.map(user => this.toResponseDto(user));
   
   return new PaginatedResponseDto(users, options.limit || 20, options.offset);
 }

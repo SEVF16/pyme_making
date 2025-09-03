@@ -51,7 +51,7 @@ export class ResetPasswordUseCase {
 
     // Buscar usuario por token hasheado
     const users = await this.userRepository.findAll();
-    const user = users.data.find(u => 
+    const user = users.result.find(u => 
       u.passwordResetToken && 
       this.tokenService.verifyToken(token, u.passwordResetToken)
     );

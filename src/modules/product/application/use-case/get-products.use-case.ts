@@ -7,7 +7,7 @@ import { PaginationOptions } from '../../../../shared/domain/interfaces/reposito
 export class GetProductsUseCase {
   constructor(private readonly productRepository: ProductRepositoryAbstract) {}
 
-  async execute(options: PaginationOptions): Promise<{ data: Product[]}> {
+  async execute(options: PaginationOptions): Promise<{ result: Product[]}> {
     const result = await this.productRepository.findAll(options);
     return await this.productRepository.findAll(options);
   }

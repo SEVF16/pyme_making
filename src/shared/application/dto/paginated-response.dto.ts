@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class PaginatedResponseDto<T> {
   @ApiProperty({ isArray: true })
-  data: T[];
+  result: T[];
 
   @ApiProperty({ description: 'Hay más elementos disponibles' })
   hasNext: boolean;
@@ -16,10 +16,10 @@ export class PaginatedResponseDto<T> {
   @ApiProperty({ description: 'Timestamp de la respuesta' })
   timestamp: string;
 
-  constructor(data: T[], limit: number, offset: number = 0) {
-    const hasMoreItems = data.length > limit;
+  constructor(result: T[], limit: number, offset: number = 0) {
+    const hasMoreItems = result.length > limit;
     
-    this.data = hasMoreItems ? data.slice(0, limit) : data;
+    this.result = hasMoreItems ? result.slice(0, limit) : result;
     this.hasNext = hasMoreItems;
     this.limit = limit;
     this.offset = offset;
