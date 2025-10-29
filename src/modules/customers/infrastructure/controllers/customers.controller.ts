@@ -34,11 +34,11 @@ import { TenantGuard } from '../../../../shared/infrastructure/guards/tenant.gua
 import { CurrentTenant } from '../../../../shared/infrastructure/decorators/current-tenant.decorator';
 import { ResponseInterceptor } from '../../../../shared/infrastructure/interceptors/response.interceptor';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto';
+import { CustomerSummaryDto } from '../../application/dto/customer-summary.dto';
 
 @ApiTags('Customers')
 @Controller('customers')
 @UseGuards(TenantGuard)
-@UseInterceptors(ResponseInterceptor)
 @ApiBearerAuth()
 @ApiHeader({
   name: 'X-Tenant-ID',
@@ -93,6 +93,25 @@ export class CustomerController {
     // Asegurar que siempre filtre por la empresa del tenant
     queryDto.companyId = tenantId;
     return await this.customerService.getCustomers(queryDto);
+  }
+
+  @Get('summary')
+  @ApiOperation({ 
+    summary: 'Obtener clientes detalle con paginación',
+    description: 'Obtiene la lista de clientes detalle con filtros y paginación'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lista de clientes detalle obtenida exitosamente',
+    type: PaginatedResponseDto,
+  })
+  async getCustomersSummary(
+    @Query() queryDto: CustomerQueryDto,
+    @CurrentTenant() tenantId: string,
+  ): Promise<PaginatedResponseDto<CustomerSummaryDto>> {
+    // Asegurar que siempre filtre por la empresa del tenant
+    queryDto.companyId = tenantId;
+    return await this.customerService.getCustomersSummary(queryDto);
   }
 
   @Get('active')

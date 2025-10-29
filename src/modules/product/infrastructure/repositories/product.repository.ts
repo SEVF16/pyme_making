@@ -163,21 +163,6 @@ protected applySearch(queryBuilder: SelectQueryBuilder<Product>, search: string)
     });
   }
 
-async getStockMovementsByCompany(companyId: string, options?: PaginationOptions): Promise<PaginatedResult<StockMovement>> {
-  const queryBuilder = this.stockMovementRepository
-    .createQueryBuilder('movement')
-    .leftJoinAndSelect('movement.product', 'product')
-    .where('product.companyId = :companyId', { companyId });
-
-  return await this.paginationService.paginate(queryBuilder, {
-    limit: options?.limit,
-    offset: options?.offset, 
-    sortField: options?.sortField || 'createdAt',
-    sortDirection: options?.sortDirection || 'DESC',
-    filters: { companyId },
-  });
-}
-
   protected getAlias(): string {
     return 'product';
   }
@@ -234,4 +219,176 @@ async getStockMovementsByCompany(companyId: string, options?: PaginationOptions)
       )`, { search: `%${filters.search}%` });
     }
   }
+
+/**
+ * Obtiene movimientos de stock de un producto con filtros y paginación
+ */
+async getStockMovementsByProduct(
+  productId: string, 
+  options?: PaginationOptions
+): Promise<PaginatedResult<StockMovement>> {
+  const queryBuilder = this.stockMovementRepository
+    .createQueryBuilder('movement')
+    .where('movement.productId = :productId', { productId });
+
+  // Incluir información del producto si se solicita
+  if (options?.filters?.includeProduct) {
+    queryBuilder.leftJoinAndSelect('movement.product', 'product');
+  }
+
+  // Aplicar filtros
+  this.applyStockMovementFilters(queryBuilder, options?.filters || {});
+
+  return await this.paginationService.paginate(queryBuilder, {
+    limit: options?.limit,
+    offset: options?.offset,
+    sortField: options?.sortField || 'createdAt',
+    sortDirection: options?.sortDirection || 'DESC',
+  });
+}
+
+/**
+ * Versión extendida que incluye filtros avanzados para movimientos por empresa
+ */
+async getStockMovementsByCompany(
+  companyId: string, 
+  options?: PaginationOptions
+): Promise<PaginatedResult<StockMovement>> {
+  const queryBuilder = this.stockMovementRepository
+    .createQueryBuilder('movement')
+    .leftJoinAndSelect('movement.product', 'product')
+    .where('product.companyId = :companyId', { companyId });
+
+  // Aplicar filtros
+  this.applyStockMovementFilters(queryBuilder, options?.filters || {});
+
+  return await this.paginationService.paginate(queryBuilder, {
+    limit: options?.limit,
+    offset: options?.offset,
+    sortField: options?.sortField || 'createdAt',
+    sortDirection: options?.sortDirection || 'DESC',
+  });
+}
+
+/**
+ * Obtiene estadísticas de movimientos por producto
+ */
+async getStockMovementStats(productId: string): Promise<{
+  totalMovements: number;
+  totalIn: number;
+  totalOut: number;
+  totalAdjustments: number;
+  lastMovementDate: Date | null;
+}> {
+  const result = await this.stockMovementRepository
+    .createQueryBuilder('movement')
+    .select([
+      'COUNT(*) as totalMovements',
+      'SUM(CASE WHEN movement.movementType = \'in\' THEN ABS(movement.quantity) ELSE 0 END) as totalIn',
+      'SUM(CASE WHEN movement.movementType = \'out\' THEN ABS(movement.quantity) ELSE 0 END) as totalOut',
+      'SUM(CASE WHEN movement.movementType = \'adjustment\' THEN 1 ELSE 0 END) as totalAdjustments',
+      'MAX(movement.createdAt) as lastMovementDate'
+    ])
+    .where('movement.productId = :productId', { productId })
+    .getRawOne();
+
+  return {
+    totalMovements: parseInt(result.totalMovements) || 0,
+    totalIn: parseFloat(result.totalIn) || 0,
+    totalOut: parseFloat(result.totalOut) || 0,
+    totalAdjustments: parseInt(result.totalAdjustments) || 0,
+    lastMovementDate: result.lastMovementDate || null,
+  };
+}
+
+/**
+ * Obtiene movimientos de stock por rango de fechas
+ */
+async getStockMovementsByDateRange(
+  companyId: string,
+  dateFrom: Date,
+  dateTo: Date,
+  options?: PaginationOptions
+): Promise<PaginatedResult<StockMovement>> {
+  const queryBuilder = this.stockMovementRepository
+    .createQueryBuilder('movement')
+    .leftJoinAndSelect('movement.product', 'product')
+    .where('product.companyId = :companyId', { companyId })
+    .andWhere('movement.createdAt >= :dateFrom', { dateFrom })
+    .andWhere('movement.createdAt <= :dateTo', { dateTo });
+
+  // Aplicar filtros adicionales
+  this.applyStockMovementFilters(queryBuilder, options?.filters || {});
+
+  return await this.paginationService.paginate(queryBuilder, {
+    limit: options?.limit,
+    offset: options?.offset,
+    sortField: options?.sortField || 'createdAt',
+    sortDirection: options?.sortDirection || 'DESC',
+  });
+}
+
+/**
+ * Busca movimientos por referencia de documento
+ */
+async getStockMovementsByReference(
+  companyId: string,
+  reference: string
+): Promise<StockMovement[]> {
+  return await this.stockMovementRepository
+    .createQueryBuilder('movement')
+    .leftJoinAndSelect('movement.product', 'product')
+    .where('product.companyId = :companyId', { companyId })
+    .andWhere('movement.reference ILIKE :reference', { reference: `%${reference}%` })
+    .orderBy('movement.createdAt', 'DESC')
+    .getMany();
+}
+
+/**
+ * Aplica filtros avanzados a las consultas de movimientos de stock
+ */
+private applyStockMovementFilters(queryBuilder: any, filters: any): void {
+  if (filters.movementType) {
+    queryBuilder.andWhere('movement.movementType = :movementType', { 
+      movementType: filters.movementType 
+    });
+  }
+
+  if (filters.dateFrom) {
+    queryBuilder.andWhere('movement.createdAt >= :dateFrom', { 
+      dateFrom: new Date(filters.dateFrom) 
+    });
+  }
+
+  if (filters.dateTo) {
+    queryBuilder.andWhere('movement.createdAt <= :dateTo', { 
+      dateTo: new Date(filters.dateTo) 
+    });
+  }
+
+  if (filters.userId) {
+    queryBuilder.andWhere('movement.userId = :userId', { 
+      userId: filters.userId 
+    });
+  }
+
+  if (filters.reference) {
+    queryBuilder.andWhere('movement.reference ILIKE :reference', { 
+      reference: `%${filters.reference}%` 
+    });
+  }
+
+  if (filters.minQuantity) {
+    queryBuilder.andWhere('ABS(movement.quantity) >= :minQuantity', { 
+      minQuantity: filters.minQuantity 
+    });
+  }
+
+  if (filters.maxQuantity) {
+    queryBuilder.andWhere('ABS(movement.quantity) <= :maxQuantity', { 
+      maxQuantity: filters.maxQuantity 
+    });
+  }
+}
+
 }

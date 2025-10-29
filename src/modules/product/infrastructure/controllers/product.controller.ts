@@ -12,6 +12,7 @@ import {
   HttpCode,
   UseGuards,
   UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -36,6 +37,9 @@ import { CurrentTenant } from '../../../../shared/infrastructure/decorators/curr
 import { ResponseInterceptor } from '../../../../shared/infrastructure/interceptors/response.interceptor';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto';
 import { ProductService } from '../../application/services/product.service';
+import { ProductSummaryDto } from '../../application/dto/product-summary.dto';
+import { StockHistoryRequestDto } from '../../application/dto/stock-history-request.dto';
+import { StockMovementResponseDto } from '../../application/dto/stock-movement-response.dto';
 
 @ApiTags('Products')
 @Controller('products')
@@ -75,6 +79,25 @@ export class ProductController {
   ): Promise<ProductResponseDto> {
     createProductDto.companyId = tenantId;
     return await this.productService.createProduct(createProductDto);
+  }
+
+  @Get('summary')
+  @ApiOperation({ 
+    summary: 'Obtener resumen de productos con paginación',
+    description: 'Obtiene la lista resumida de productos (id, sku, name, status, stock) con filtros y paginación'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lista resumida de productos obtenida exitosamente',
+    type: PaginatedResponseDto<ProductSummaryDto>,
+  })
+  async getProductsSummary(
+    @Query() queryDto: ProductQueryDto,
+    @CurrentTenant() tenantId: string,
+  ): Promise<PaginatedResponseDto<ProductSummaryDto>> {
+    // Asegurar que siempre filtre por la empresa del tenant
+    queryDto.companyId = tenantId;
+    return await this.productService.getProductsSummary(queryDto);
   }
 
   @Get()
@@ -328,4 +351,111 @@ export class ProductController {
   async deleteProduct(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.productService.deleteProduct(id);
   }
+@Post(':id/stock-history')
+@ApiOperation({ 
+  summary: 'Obtener historial de movimientos de stock',
+  description: 'Obtiene el historial completo de movimientos de stock de un producto con filtros'
+})
+@ApiParam({
+  name: 'id',
+  description: 'ID único del producto',
+  format: 'uuid',
+})
+@ApiBody({ type: StockHistoryRequestDto })
+@ApiResponse({
+  status: HttpStatus.OK,
+  description: 'Historial de movimientos obtenido exitosamente',
+  type: PaginatedResponseDto,
+})
+async getProductStockHistory(
+  @Param('id', ParseUUIDPipe) id: string,
+  @Body() requestDto: StockHistoryRequestDto,
+): Promise<PaginatedResponseDto<StockMovementResponseDto>> {
+  requestDto.productId = id; // Asegurar que use el ID del parámetro
+  return await this.productService.getProductStockHistory(id, requestDto);
+}
+
+@Post('stock-movements/search')
+@ApiOperation({ 
+  summary: 'Buscar movimientos de stock de la empresa',
+  description: 'Busca movimientos de stock con filtros avanzados enviados en el body'
+})
+@ApiBody({ type: StockHistoryRequestDto })
+@ApiResponse({
+  status: HttpStatus.OK,
+  description: 'Movimientos de stock obtenidos exitosamente',
+  type: PaginatedResponseDto,
+})
+async searchStockMovements(
+  @Body() requestDto: StockHistoryRequestDto,
+  @CurrentTenant() tenantId: string,
+): Promise<PaginatedResponseDto<StockMovementResponseDto>> {
+  return await this.productService.getCompanyStockMovements(tenantId, requestDto);
+}
+
+@Post('stock-movements/by-reference')
+@ApiOperation({ 
+  summary: 'Buscar movimientos por referencia de documento',
+  description: 'Busca movimientos de stock que contengan la referencia especificada'
+})
+@ApiBody({ 
+  schema: {
+    type: 'object',
+    properties: {
+      reference: { type: 'string', example: 'FAC-001' },
+      includeProduct: { type: 'boolean', example: true }
+    },
+    required: ['reference']
+  }
+})
+@ApiResponse({
+  status: HttpStatus.OK,
+  description: 'Movimientos encontrados por referencia',
+  type: [StockMovementResponseDto],
+})
+async getStockMovementsByReference(
+  @Body() body: { reference: string; includeProduct?: boolean },
+  @CurrentTenant() tenantId: string,
+): Promise<StockMovementResponseDto[]> {
+  return await this.productService.getStockMovementsByReference(tenantId, body.reference);
+}
+
+@Post('stock-movements/date-range')
+@ApiOperation({ 
+  summary: 'Obtener movimientos por rango de fechas',
+  description: 'Obtiene movimientos de stock en un rango de fechas específico'
+})
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      dateFrom: { type: 'string', format: 'date', example: '2024-01-01' },
+      dateTo: { type: 'string', format: 'date', example: '2024-12-31' },
+      movementType: { type: 'string', enum: ['in', 'out', 'adjustment'] },
+      includeProduct: { type: 'boolean', example: true },
+      page: { type: 'number', example: 1 },
+      limit: { type: 'number', example: 20 }
+    },
+    required: ['dateFrom', 'dateTo']
+  }
+})
+@ApiResponse({
+  status: HttpStatus.OK,
+  description: 'Movimientos en rango de fechas',
+  type: PaginatedResponseDto,
+})
+async getStockMovementsByDateRange(
+  @Body() requestDto: StockHistoryRequestDto & { dateFrom: string; dateTo: string },
+  @CurrentTenant() tenantId: string,
+): Promise<PaginatedResponseDto<StockMovementResponseDto>> {
+  // Validar fechas
+  const fromDate = new Date(requestDto.dateFrom);
+  const toDate = new Date(requestDto.dateTo);
+  
+  if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+    throw new BadRequestException('Formato de fecha inválido. Use formato ISO (YYYY-MM-DD)');
+  }
+
+  return await this.productService.getCompanyStockMovements(tenantId, requestDto);
+}
 }

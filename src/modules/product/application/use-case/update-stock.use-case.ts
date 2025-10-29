@@ -15,15 +15,19 @@ export class UpdateStockUseCase {
     }
 
     let newStock: number;
+    let actualQuantity: number; // Cantidad real del movimiento
 
     switch (updateStockDto.movementType) {
       case 'in':
-        newStock = product.stock + Math.abs(updateStockDto.quantity);
+        actualQuantity = Math.abs(updateStockDto.quantity);
+        newStock = product.stock + actualQuantity;
         break;
       case 'out':
+        actualQuantity = -Math.abs(updateStockDto.quantity);
         newStock = product.stock - Math.abs(updateStockDto.quantity);
         break;
       case 'adjustment':
+        actualQuantity = updateStockDto.quantity - product.stock;
         newStock = updateStockDto.quantity;
         break;
       default:
@@ -40,6 +44,21 @@ export class UpdateStockUseCase {
       throw new BadRequestException(`Stock no puede exceder el máximo permitido (${product.maxStock})`);
     }
 
-    return await this.productRepository.update(id, { stock: newStock });
+    // 1. Actualizar el stock del producto
+    const updatedProduct = await this.productRepository.update(id, { stock: newStock });
+
+    // 2. ⭐ CREAR EL MOVIMIENTO DE STOCK ⭐
+    await this.productRepository.createStockMovement({
+      productId: id,
+      movementType: updateStockDto.movementType,
+      quantity: actualQuantity,
+      previousStock: product.stock,
+      newStock: newStock,
+      reason: updateStockDto.reason,
+      reference: updateStockDto.reference,
+      // userId: se puede agregar si tienes contexto de usuario
+    });
+
+    return updatedProduct;
   }
 }

@@ -3,7 +3,7 @@ import { IsEnum, IsOptional, IsBoolean, IsObject } from 'class-validator';
 import { CreateUserDto } from './create-user.dto';
 
 export class UpdateUserDto extends PartialType(
-  OmitType(CreateUserDto, ['password', 'companyId'] as const)
+  OmitType(CreateUserDto, ['password', 'companyId', 'sendWelcomeEmail'] as const)
 ) {
   @IsEnum(['active', 'inactive', 'suspended', 'pending'])
   @IsOptional()
