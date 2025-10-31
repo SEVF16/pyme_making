@@ -7,6 +7,7 @@ import { EmailValueObject } from '../../../../shared/domain/value-objects/email.
 import { PasswordValueObject } from '../../domain/value-objects/password.value-object';
 import { UserRoleValueObject } from '../../domain/value-objects/user-role.value-object';
 import { TokenService } from '../../../../shared/application/services/token.service'; // *** USANDO SHARED ***
+import { UserSecurityPolicyService } from '../../domain/services/user-security-policy.service';
 import { Logger } from '@nestjs/common';
 
 @Injectable()
@@ -17,6 +18,7 @@ export class CreateUserUseCase {
     private readonly userRepository: UserRepositoryAbstract,
     private readonly companyRepository: CompanyRepositoryAbstract,
     private readonly tokenService: TokenService, // *** USANDO SHARED ***
+    private readonly securityPolicyService: UserSecurityPolicyService,
   ) {}
 
   async execute(createUserDto: CreateUserDto): Promise<User> {
@@ -30,21 +32,36 @@ export class CreateUserUseCase {
 
     // Validar value objects usando shared
     const emailValue = EmailValueObject.create(createUserDto.email);
-    const passwordValue = await PasswordValueObject.createFromPlain(createUserDto.password);
     const roleValue = UserRoleValueObject.create(createUserDto.role);
+
+    // Obtener política de contraseñas de la empresa
+    const passwordPolicy = await this.securityPolicyService.getPasswordPolicy(
+      createUserDto.companyId,
+    );
+    const passwordValue = await PasswordValueObject.createFromPlainWithPolicy(
+      createUserDto.password,
+      passwordPolicy,
+    );
 
     // Verificar si el usuario ya existe en esa empresa
     const existingUser = await this.userRepository.findByEmail(
       emailValue.getValue(),
-      createUserDto.companyId
+      createUserDto.companyId,
     );
 
     if (existingUser) {
       throw new ConflictException('Ya existe un usuario con este email en la empresa');
     }
 
-    // Generar token de verificación usando shared service
-    const tokenData = this.tokenService.generateVerificationToken(24);
+    // Obtener configuración de verificación de email
+    const emailVerificationConfig = await this.securityPolicyService.getEmailVerificationConfig(
+      createUserDto.companyId,
+    );
+
+    // Generar token de verificación usando shared service con duración configurable
+    const tokenData = this.tokenService.generateVerificationToken(
+      emailVerificationConfig.tokenExpiryHours,
+    );
 
     // Crear usuario
     const userData = {

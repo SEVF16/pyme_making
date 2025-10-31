@@ -26,6 +26,7 @@ import { ChangePasswordUseCase } from './application/use-cases/change-password.u
 
 // Import Company module for dependencies
 import { CompaniesModule } from '../companies/companies.module';
+import { ConfigurationModule } from '../configuration/configuration.module';
 import jwtConfig from 'src/config/jwt.config';
 import { UsersController } from './infrastructure/controllers/users.controller';
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.use-case';
@@ -34,6 +35,7 @@ import { UserExceptionFilter } from './infrastructure/filters/user-exception.fil
 import { UsersService } from './application/services/users.service';
 import { AuthController } from './infrastructure/controllers/auth.controller';
 import { AuthService } from './application/services/auth.service';
+import { UserSecurityPolicyService } from './domain/services/user-security-policy.service';
 
 
 
@@ -41,6 +43,7 @@ import { AuthService } from './application/services/auth.service';
   imports: [
     TypeOrmModule.forFeature([User]),
     CompaniesModule,
+    ConfigurationModule,
     ConfigModule.forFeature(jwtConfig),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -58,6 +61,7 @@ import { AuthService } from './application/services/auth.service';
     // Services
     UsersService,
     AuthService,
+    UserSecurityPolicyService,
     // Use Cases
     CreateUserUseCase,
     GetUserUseCase,

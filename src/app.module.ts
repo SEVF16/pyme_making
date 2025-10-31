@@ -13,6 +13,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseInterceptor } from './shared/infrastructure/interceptors/response.interceptor';
 import { GlobalExceptionFilter } from './shared/infrastructure/filters/global-exception.filter';
 import { SalesOrchestrationModule } from './modules/sales-orchestration/sales-orchestration.module';
+import { ConfigurationModule } from './modules/configuration/configuration.module';
 
 
 @Module({
@@ -28,7 +29,8 @@ import { SalesOrchestrationModule } from './modules/sales-orchestration/sales-or
     CustomersModule,
     ProductsModule,
     InvoicesModule,
-    SalesOrchestrationModule
+    SalesOrchestrationModule,
+    ConfigurationModule
     // Aquí irán tus módulos de dominio
   ],
   controllers: [AppController],

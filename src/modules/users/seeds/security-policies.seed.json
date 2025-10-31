@@ -1,0 +1,337 @@
+[
+  {
+    "name": "Standard Password Policy",
+    "scope": "system",
+    "scopeId": null,
+    "category": "security",
+    "configKey": "users.password_policy",
+    "configValue": {
+      "minLength": 8,
+      "requireLowercase": true,
+      "requireUppercase": true,
+      "requireNumbers": true,
+      "requireSpecialChars": true,
+      "specialChars": "@$!%*?&",
+      "maxAgeDays": 90
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "minLength": {
+          "type": "number",
+          "minimum": 6,
+          "maximum": 128,
+          "description": "Longitud mínima de la contraseña"
+        },
+        "requireLowercase": {
+          "type": "boolean",
+          "description": "Requiere al menos una letra minúscula"
+        },
+        "requireUppercase": {
+          "type": "boolean",
+          "description": "Requiere al menos una letra mayúscula"
+        },
+        "requireNumbers": {
+          "type": "boolean",
+          "description": "Requiere al menos un número"
+        },
+        "requireSpecialChars": {
+          "type": "boolean",
+          "description": "Requiere al menos un carácter especial"
+        },
+        "specialChars": {
+          "type": "string",
+          "description": "Lista de caracteres especiales permitidos",
+          "default": "@$!%*?&"
+        },
+        "maxAgeDays": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Días antes de que expire la contraseña (0 = nunca expira)"
+        }
+      },
+      "required": [
+        "minLength",
+        "requireLowercase",
+        "requireUppercase",
+        "requireNumbers",
+        "requireSpecialChars"
+      ]
+    },
+    "description": "Política de contraseñas estándar del sistema",
+    "isActive": true
+  },
+  {
+    "name": "Standard Session Policy",
+    "scope": "system",
+    "scopeId": null,
+    "category": "security",
+    "configKey": "users.session_policy",
+    "configValue": {
+      "sessionTimeout": "24h",
+      "maxConcurrentSessions": 3,
+      "refreshTokenExpiry": "7d"
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "sessionTimeout": {
+          "type": "string",
+          "pattern": "^[0-9]+(s|m|h|d)$",
+          "description": "Duración del token JWT (ej: 24h, 30m, 7d)"
+        },
+        "maxConcurrentSessions": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Máximo de sesiones concurrentes permitidas"
+        },
+        "refreshTokenExpiry": {
+          "type": "string",
+          "pattern": "^[0-9]+(s|m|h|d)$",
+          "description": "Duración del refresh token"
+        }
+      },
+      "required": ["sessionTimeout"]
+    },
+    "description": "Política de sesiones estándar del sistema",
+    "isActive": true
+  },
+  {
+    "name": "Standard Email Verification Config",
+    "scope": "system",
+    "scopeId": null,
+    "category": "security",
+    "configKey": "users.email_verification",
+    "configValue": {
+      "tokenExpiryHours": 24,
+      "requireVerification": true,
+      "resendCooldownMinutes": 5
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "tokenExpiryHours": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 168,
+          "description": "Horas antes de que expire el token de verificación"
+        },
+        "requireVerification": {
+          "type": "boolean",
+          "description": "Si se requiere verificación de email para activar usuario"
+        },
+        "resendCooldownMinutes": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 60,
+          "description": "Minutos entre reenvíos de email de verificación"
+        }
+      },
+      "required": ["tokenExpiryHours", "requireVerification"]
+    },
+    "description": "Configuración de verificación de email estándar",
+    "isActive": true
+  },
+  {
+    "name": "Standard Password Reset Config",
+    "scope": "system",
+    "scopeId": null,
+    "category": "security",
+    "configKey": "users.password_reset",
+    "configValue": {
+      "tokenExpiryHours": 1,
+      "maxAttemptsPerDay": 3,
+      "cooldownMinutes": 15
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "tokenExpiryHours": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 24,
+          "description": "Horas antes de que expire el token de reset"
+        },
+        "maxAttemptsPerDay": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Máximo de intentos de reset por día"
+        },
+        "cooldownMinutes": {
+          "type": "number",
+          "minimum": 5,
+          "maximum": 120,
+          "description": "Tiempo de espera entre intentos de reset"
+        }
+      },
+      "required": ["tokenExpiryHours", "maxAttemptsPerDay"]
+    },
+    "description": "Configuración de reset de contraseña estándar",
+    "isActive": true
+  },
+  {
+    "name": "Standard Login Attempts Config",
+    "scope": "system",
+    "scopeId": null,
+    "category": "security",
+    "configKey": "users.login_attempts",
+    "configValue": {
+      "maxAttempts": 5,
+      "lockoutDurationMinutes": 30,
+      "resetAfterMinutes": 60
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "maxAttempts": {
+          "type": "number",
+          "minimum": 3,
+          "maximum": 10,
+          "description": "Máximo de intentos de login fallidos antes de bloqueo"
+        },
+        "lockoutDurationMinutes": {
+          "type": "number",
+          "minimum": 5,
+          "maximum": 1440,
+          "description": "Duración del bloqueo en minutos"
+        },
+        "resetAfterMinutes": {
+          "type": "number",
+          "minimum": 30,
+          "maximum": 1440,
+          "description": "Tiempo después del cual se resetea el contador de intentos"
+        }
+      },
+      "required": ["maxAttempts", "lockoutDurationMinutes"]
+    },
+    "description": "Configuración de intentos de login estándar (futuro)",
+    "isActive": true
+  },
+  {
+    "name": "High Security Password Policy (Financial)",
+    "scope": "company",
+    "scopeId": "REPLACE_WITH_COMPANY_ID",
+    "category": "security",
+    "configKey": "users.password_policy",
+    "configValue": {
+      "minLength": 16,
+      "requireLowercase": true,
+      "requireUppercase": true,
+      "requireNumbers": true,
+      "requireSpecialChars": true,
+      "specialChars": "@$!%*?&#-_",
+      "maxAgeDays": 30
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "minLength": { "type": "number", "minimum": 6, "maximum": 128 },
+        "requireLowercase": { "type": "boolean" },
+        "requireUppercase": { "type": "boolean" },
+        "requireNumbers": { "type": "boolean" },
+        "requireSpecialChars": { "type": "boolean" },
+        "specialChars": { "type": "string" },
+        "maxAgeDays": { "type": "number", "minimum": 0 }
+      },
+      "required": ["minLength", "requireLowercase", "requireUppercase", "requireNumbers", "requireSpecialChars"]
+    },
+    "description": "Política STRICT para empresas financieras - Contraseñas de 16 caracteres, expiran cada 30 días",
+    "isActive": false,
+    "metadata": {
+      "template": "financial",
+      "industry": "banking",
+      "complianceLevel": "strict"
+    }
+  },
+  {
+    "name": "High Security Session Policy (Financial)",
+    "scope": "company",
+    "scopeId": "REPLACE_WITH_COMPANY_ID",
+    "category": "security",
+    "configKey": "users.session_policy",
+    "configValue": {
+      "sessionTimeout": "15m",
+      "maxConcurrentSessions": 1,
+      "refreshTokenExpiry": "1h"
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "sessionTimeout": { "type": "string", "pattern": "^[0-9]+(s|m|h|d)$" },
+        "maxConcurrentSessions": { "type": "number", "minimum": 1, "maximum": 10 },
+        "refreshTokenExpiry": { "type": "string", "pattern": "^[0-9]+(s|m|h|d)$" }
+      },
+      "required": ["sessionTimeout"]
+    },
+    "description": "Sesiones cortas de 15 minutos para alta seguridad financiera",
+    "isActive": false,
+    "metadata": {
+      "template": "financial",
+      "industry": "banking"
+    }
+  },
+  {
+    "name": "Relaxed Password Policy (Development/Startup)",
+    "scope": "company",
+    "scopeId": "REPLACE_WITH_COMPANY_ID",
+    "category": "security",
+    "configKey": "users.password_policy",
+    "configValue": {
+      "minLength": 6,
+      "requireLowercase": false,
+      "requireUppercase": false,
+      "requireNumbers": false,
+      "requireSpecialChars": false,
+      "specialChars": "@$!",
+      "maxAgeDays": 0
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "minLength": { "type": "number", "minimum": 6, "maximum": 128 },
+        "requireLowercase": { "type": "boolean" },
+        "requireUppercase": { "type": "boolean" },
+        "requireNumbers": { "type": "boolean" },
+        "requireSpecialChars": { "type": "boolean" },
+        "specialChars": { "type": "string" },
+        "maxAgeDays": { "type": "number", "minimum": 0 }
+      },
+      "required": ["minLength", "requireLowercase", "requireUppercase", "requireNumbers", "requireSpecialChars"]
+    },
+    "description": "Política relajada para entornos de desarrollo o startups en fase temprana",
+    "isActive": false,
+    "metadata": {
+      "template": "development",
+      "industry": "tech_startup"
+    }
+  },
+  {
+    "name": "Extended Session Policy (Development/Internal)",
+    "scope": "company",
+    "scopeId": "REPLACE_WITH_COMPANY_ID",
+    "category": "security",
+    "configKey": "users.session_policy",
+    "configValue": {
+      "sessionTimeout": "7d",
+      "maxConcurrentSessions": 10,
+      "refreshTokenExpiry": "30d"
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "sessionTimeout": { "type": "string", "pattern": "^[0-9]+(s|m|h|d)$" },
+        "maxConcurrentSessions": { "type": "number", "minimum": 1, "maximum": 10 },
+        "refreshTokenExpiry": { "type": "string", "pattern": "^[0-9]+(s|m|h|d)$" }
+      },
+      "required": ["sessionTimeout"]
+    },
+    "description": "Sesiones extendidas para aplicaciones internas o desarrollo",
+    "isActive": false,
+    "metadata": {
+      "template": "development",
+      "industry": "internal_tools"
+    }
+  }
+]
