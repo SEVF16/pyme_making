@@ -32,4 +32,32 @@ export abstract class ProductRepositoryAbstract implements BaseRepositoryInterfa
   abstract createStockMovement(movement: Partial<StockMovement>): Promise<StockMovement>;
   abstract getStockMovements(productId: string): Promise<StockMovement[]>;
   abstract getStockMovementsByCompany(companyId: string, options?: PaginationOptions): Promise<PaginatedResult<StockMovement>>;
+
+ abstract getStockMovementsByProduct(
+    productId: string, 
+    options?: PaginationOptions
+  ): Promise<PaginatedResult<StockMovement>>;
+
+  abstract getStockMovementStats(productId: string): Promise<{
+    totalMovements: number;
+    totalIn: number;
+    totalOut: number;
+    totalAdjustments: number;
+    lastMovementDate: Date | null;
+  }>;
+
+  abstract getStockMovementsByDateRange(
+    companyId: string,
+    dateFrom: Date,
+    dateTo: Date,
+    options?: PaginationOptions
+  ): Promise<PaginatedResult<StockMovement>>;
+
+  abstract getStockMovementsByReference(
+    companyId: string,
+    reference: string
+  ): Promise<StockMovement[]>;
+
+
 }
+

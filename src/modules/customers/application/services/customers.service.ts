@@ -10,6 +10,7 @@ import { GetCustomersByCompanyUseCase } from '../use-cases/get-customers-by-comp
 import { CustomerRepositoryAbstract } from '../../domain/interfaces/customer-repository.interface';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto'; // *** USANDO SHARED ***
 import { PaginationOptions } from 'src/shared/domain/interfaces/repository.interface';
+import { CustomerSummaryDto } from '../dto/customer-summary.dto';
 
 
 @Injectable()
@@ -85,6 +86,25 @@ async getCustomers(queryDto: CustomerQueryDto): Promise<PaginatedResponseDto<Cus
     return customers.map(customer => this.toResponseDto(customer));
   }
 
+  async getCustomersSummary(queryDto: CustomerQueryDto): Promise<PaginatedResponseDto<CustomerSummaryDto>> {
+    const options: PaginationOptions = {
+      limit: queryDto.limit,
+      offset: queryDto.offset, 
+      sortField: queryDto.sortField || 'createdAt',
+      sortDirection: queryDto.sortDirection || 'DESC',
+      search: queryDto.search,
+      filters: {
+        companyId: queryDto.companyId,
+        status: queryDto.status,
+        customerType: queryDto.customerType,
+      },
+    };
+
+    const result = await this.customerRepository.findAll(options);
+    const customers = result.result.map(customer => this.toSummaryDto(customer));
+    
+    return new PaginatedResponseDto(customers, options.limit || 20, options.offset);
+  }
   private toResponseDto(customer: any): CustomerResponseDto {
     return {
       id: customer.id,
@@ -105,6 +125,20 @@ async getCustomers(queryDto: CustomerQueryDto): Promise<PaginatedResponseDto<Cus
       additionalInfo: customer.additionalInfo,
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,
+    };
+  }
+
+    private toSummaryDto(customer: any): CustomerSummaryDto {
+    return {
+      id: customer.id,
+      rut: customer.rut,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email,
+      phone: customer.phone,
+      customerType: customer.customerType,
+      status: customer.status,
+    
     };
   }
 }

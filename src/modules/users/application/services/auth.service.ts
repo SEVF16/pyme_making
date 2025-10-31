@@ -86,7 +86,6 @@ export class AuthService {
       fullName: user.getFullName(),
       email: user.email,
       phone: user.phone,
-      avatar: user.avatar,
       role: user.role,
       status: user.status,
       permissions: user.permissions || [],

@@ -13,7 +13,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { CreateUserDto } from '../../application/dto/create-user.dto';
 import { UpdateUserDto } from '../../application/dto/update-user.dto';
 import { ChangePasswordDto } from '../../application/dto/change-password.dto';
@@ -31,11 +31,17 @@ import { CurrentTenant } from '../../../../shared/infrastructure/decorators/curr
 import { CurrentUser } from '../../../../shared/infrastructure/decorators/current-user.decorator';
 import { ResponseInterceptor } from '../../../../shared/infrastructure/interceptors/response.interceptor';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto';
+import { UserSummaryDto } from '../../application/dto/users-summary.dto';
 
 @ApiTags('users')
 @Controller('users')
 @UseGuards(TenantGuard)
 @ApiBearerAuth('JWT-auth')
+@ApiHeader({
+  name: 'X-Tenant-ID',
+  description: 'ID de la empresa (tenant)',
+  required: true,
+})
 export class UsersController {
   constructor(
     private readonly usersService: UsersService, 
@@ -55,6 +61,13 @@ export class UsersController {
   @ApiResponse({ status: 200, type: PaginatedResponseDto })
   async getUsers(@Query() queryDto: UserQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
     return await this.usersService.getUsers(queryDto);
+  }
+
+  @Get('summary')
+  @ApiOperation({ summary: 'Obtener usuarios detalle con paginación' })
+  @ApiResponse({ status: 200, type: PaginatedResponseDto })
+  async getUsersSummary(@Query() queryDto: UserQueryDto): Promise<PaginatedResponseDto<UserSummaryDto>> {
+    return await this.usersService.getUsersSummary(queryDto);
   }
 
   @Get('profile')

@@ -14,6 +14,7 @@ import { VerifyEmailUseCase } from '../use-cases/verify-email.use-case';
 import { RequestPasswordResetUseCase, ResetPasswordUseCase } from '../use-cases/reset-password.use-case';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto'; // *** USANDO SHARED ***
 import { PaginationOptions } from '../../../../shared/domain/interfaces/repository.interface'; // *** USANDO SHARED ***
+import { UserSummaryDto } from '../dto/users-summary.dto';
 
 @Injectable()
 export class UsersService {
@@ -67,7 +68,25 @@ async getUsers(queryDto: UserQueryDto): Promise<PaginatedResponseDto<UserRespons
   
   return new PaginatedResponseDto(users, options.limit || 20, options.offset);
 }
+async getUsersSummary(queryDto: UserQueryDto): Promise<PaginatedResponseDto<UserSummaryDto>> {
+  const options: PaginationOptions = {
+    limit: queryDto.limit,
+    offset: queryDto.offset, 
+    sortField: queryDto.sortField || 'createdAt',
+    sortDirection: queryDto.sortDirection || 'DESC',
+    search: queryDto.search,
+    filters: {
+      companyId: queryDto.companyId,
+      role: queryDto.role,
+      status: queryDto.status,
+    },
+  };
 
+  const result = await this.userRepository.findAll(options);
+  const users = result.result.map(user => this.toSummaryDto(user));
+  
+  return new PaginatedResponseDto(users, options.limit || 20, options.offset);
+}
   async updateUser(id: string, updateUserDto: UpdateUserDto, currentUser?: User): Promise<UserResponseDto> {
     const user = await this.updateUserUseCase.execute(id, updateUserDto, currentUser);
     return this.toResponseDto(user);
@@ -110,13 +129,28 @@ async getUsers(queryDto: UserQueryDto): Promise<PaginatedResponseDto<UserRespons
       fullName: user.getFullName(),
       email: user.email,
       phone: user.phone,
-      avatar: user.avatar,
       role: user.role,
       status: user.status,
       permissions: user.permissions || [],
       emailVerified: user.emailVerified,
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+    private toSummaryDto(user: User): UserSummaryDto {
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      status: user.status,
+      permissions: user.permissions || [],
+      emailVerified: user.emailVerified,
+            createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
   }
