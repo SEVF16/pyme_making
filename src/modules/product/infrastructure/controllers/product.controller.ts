@@ -11,7 +11,6 @@ import {
   HttpStatus,
   HttpCode,
   UseGuards,
-  UseInterceptors,
   BadRequestException,
 } from '@nestjs/common';
 import {
@@ -34,7 +33,6 @@ import { UpdateStockDto } from '../../application/dto/update-stock.dto';
 // *** USANDO SHARED ***
 import { TenantGuard } from '../../../../shared/infrastructure/guards/tenant.guard';
 import { CurrentTenant } from '../../../../shared/infrastructure/decorators/current-tenant.decorator';
-import { ResponseInterceptor } from '../../../../shared/infrastructure/interceptors/response.interceptor';
 import { PaginatedResponseDto } from '../../../../shared/application/dto/paginated-response.dto';
 import { ProductService } from '../../application/services/product.service';
 import { ProductSummaryDto } from '../../application/dto/product-summary.dto';
@@ -168,6 +166,29 @@ export class ProductController {
     @CurrentTenant() tenantId: string,
   ): Promise<ProductResponseDto[]> {
     return await this.productService.searchProducts(query, tenantId);
+  }
+
+  @Get('search/summary')
+  @ApiOperation({ 
+    summary: 'Buscar productos summary',
+    description: 'Busca productos por nombre, SKU, descripción o código de barras'
+  })
+  @ApiQuery({
+    name: 'q',
+    description: 'Término de búsqueda',
+    required: true,
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Resultados de búsqueda',
+    type: [ProductSummaryDto],
+  })
+  async searchProductsSummary(
+    @Query('q') query: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<ProductSummaryDto[]> {
+    return await this.productService.searchProductsSummary(query, tenantId);
   }
 
   @Get('category/:category')

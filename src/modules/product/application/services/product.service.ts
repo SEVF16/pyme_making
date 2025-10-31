@@ -14,8 +14,9 @@ import { GetProductsUseCase } from '../use-case/get-products.use-case';
 import { ProductRepositoryAbstract } from '../../domain/interface/product-repository.interface';
 import { ProductSummaryDto } from '../dto/product-summary.dto';
 import { StockMovementResponseDto } from '../dto/stock-movement-response.dto';
-import { StockHistoryQueryDto } from '../dto/stock-history-query.dto';
 import { StockHistoryRequestDto } from '../dto/stock-history-request.dto';
+import { Product } from '../../domain/entities/product.entity';
+import { StockMovement } from '../../domain/entities/stock-movement.entity';
 
 @Injectable()
 export class ProductService {
@@ -110,6 +111,11 @@ async getProducts(queryDto: ProductQueryDto): Promise<PaginatedResponseDto<Produ
   async searchProducts(query: string, companyId: string): Promise<ProductResponseDto[]> {
     const products = await this.productRepository.searchProducts(query, companyId);
     return products.map(product => this.toResponseDto(product));
+  }
+
+    async searchProductsSummary(query: string, companyId: string): Promise<ProductSummaryDto[]> {
+    const products = await this.productRepository.searchProducts(query, companyId);
+    return products.map(product => this.toSummaryDto(product));
   }
 
   async getProductsByBarcode(barcode: string, companyId: string): Promise<ProductResponseDto | null> {
@@ -224,7 +230,7 @@ async getProducts(queryDto: ProductQueryDto): Promise<PaginatedResponseDto<Produ
   /**
    * Convierte StockMovement entity a StockMovementResponseDto
    */
-  private toStockMovementResponseDto(movement: any): StockMovementResponseDto {
+  private toStockMovementResponseDto(movement: StockMovement): StockMovementResponseDto {
     return {
       id: movement.id,
       productId: movement.productId,
@@ -245,7 +251,7 @@ async getProducts(queryDto: ProductQueryDto): Promise<PaginatedResponseDto<Produ
       } : undefined,
     };
   }
-  private toResponseDto(product: any): ProductResponseDto {
+  private toResponseDto(product: Product): ProductResponseDto {
     const profitMargin = product.costPrice 
       ? ((product.price - product.costPrice) / product.price) * 100 
       : 0;
@@ -313,7 +319,7 @@ async getProducts(queryDto: ProductQueryDto): Promise<PaginatedResponseDto<Produ
     );
   }
 
-    private toSummaryDto(product: any): ProductSummaryDto {
+    private toSummaryDto(product: Product): ProductSummaryDto {
     return {
       id: product.id,
       sku: product.sku,
